@@ -31,14 +31,14 @@ class Net(nn.Module):
         h = 0.5
         result = []
         for j, x_j in enumerate(X):
-                share = gauss( (( torch.mv(self.fc1.weight , x_j) - Xw ) / h ))
-                down += share
-                up += share * self.Y[j]
-                #print(share)
+                tmp = gauss( (( torch.mv(self.fc1.weight , x_j) - Xw ) / h ))
+                denominator += tmp
+                numerator += tmp * self.Y[j]
+                #print(tmp)
                 #print(self.Y[j])
-                #print(share * self.Y[j])
+                #print(tmp * self.Y[j])
 
-        g = up/down
+        g = numerator/denominator
         return g
 
                 
