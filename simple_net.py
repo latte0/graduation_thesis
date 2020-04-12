@@ -26,8 +26,8 @@ class Net(nn.Module):
         self.train_X = X
 
     def leave_one_out(self, X, Xw):
-        up = 0
-        down = 0
+        numerator = 0
+        denominator = 0
         h = 0.5
         result = []
         for j, x_j in enumerate(X):
