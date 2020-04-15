@@ -6,7 +6,7 @@ import torch.optim as optim
 import numpy as np
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
-
+from torch.autograd import Variable
 
 
 def gauss(x, a = 1, mu = 0, sigma = 1):
@@ -24,14 +24,16 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(4, 3, bias=False)
         self.Y = Y
         self.train_X = X
+        self.h = nn.Parameter(torch.tensor(1.0, requires_grad = True))
 
     def leave_one_out(self, X, Xw):
         numerator = 0
         denominator = 0
-        h = 0.5
         result = []
+        print("h")
+        print(self.h)
         for j, x_j in enumerate(X):
-                tmp = gauss( (( torch.mv(self.fc1.weight , x_j) - Xw ) / h ))
+                tmp = gauss( (( torch.mv(self.fc1.weight , x_j) - Xw ) / self.h ))
                 denominator += tmp
                 numerator += tmp * self.Y[j]
                 #print(tmp)
@@ -52,15 +54,16 @@ class Net(nn.Module):
 iris = datasets.load_iris()
 y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
 y[np.arange(len(iris.target)), iris.target] = 1
-X_train, X_test, y_train, y_test = train_test_split(iris.data, y, test_size=0.90)
+X_train, X_test, y_train, y_test = train_test_split(iris.data, y, test_size=0.95)
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
+x_static = Variable(torch.from_numpy(X_train).float(), requires_grad=False)
 #print(x)
 y = Variable(torch.from_numpy(y_train).float())
-net = Net(y, x)
+net = Net(y, x_static)
 optimizer = optim.SGD(net.parameters(), lr=0.01)
 criterion = nn.MSELoss()
 
-for i in range(1000):
+for i in range(3000):
     optimizer.zero_grad()
     output = net(x)
     loss = criterion(output, y)
