@@ -90,7 +90,7 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 plt.ion()
 
-for i in range(1000):
+for i in range(3000):
     optimizer.zero_grad()
     output = net(x)
     loss = criterion(output, y)
@@ -98,12 +98,12 @@ for i in range(1000):
     loss.backward()
     optimizer.step()
 
-    #test_input_y_torch = net.leave_one_out(test_input_x_torch)
-    #test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
+    test_input_y_torch = net.leave_one_out(test_input_x_torch)
+    test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
-    #plt.plot(test_input_x, test_input_y)
-    # plt.pause(0.00000001)
-    # plt.cla()
+    plt.plot(test_input_x, test_input_y)
+    plt.pause(0.00000001)
+    plt.cla()
 
 
 plt.ioff()
