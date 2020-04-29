@@ -28,7 +28,7 @@ class Net(nn.Module):
         self.train_X = X
         self.settings = settings
         # バンド幅も推定する
-        self.h = nn.Parameter(torch.tensor(0.6, requires_grad=True))
+        self.h = nn.Parameter(torch.tensor(2.0, requires_grad=True))
 
     # leave_one_out推定量の計算
 
