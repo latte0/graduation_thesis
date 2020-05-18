@@ -10,7 +10,7 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import math
 import numpy as np
-from sklearn.datasets import load_digits
+
 # pytorchのガウス関数
 
 
@@ -22,24 +22,26 @@ class Net(nn.Module):
 
     def __init__(self, Y, X, settings):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(64, 10, bias=False)
+        self.fc1 = nn.Linear(64, 128, bias=False)
+        self.fc2 = nn.Linear(128, 10, bias=False)
         # leave_ont_outのために事前に入力と出力をセットしておく
         self.Y = Y
         self.train_X = X
         self.settings = settings
         # バンド幅も推定する
-        self.h = nn.Parameter(torch.tensor(2.0, requires_grad=True))
+        self.h = nn.Parameter(torch.tensor(1.0, requires_grad=True))
 
     # leave_one_out推定量の計算
 
-    def leave_one_out(self, Xw):
+    def leave_one_out(self, Zw):
         numerator = 0
         denominator = 0
         result = []
         # print("h")
         # print(self.h)
         for j, x_j in enumerate(self.train_X):
-            tmp = gauss(((torch.mv(self.fc1.weight, x_j) - Xw) / self.h))
+            tmp = gauss(((torch.mv(self.fc2.weight, F.relu(
+                torch.mv(self.fc1.weight, x_j))) - Zw) / self.h))
             denominator += tmp
             numerator += tmp * self.Y[j]
 
@@ -50,13 +52,16 @@ class Net(nn.Module):
         return g
 
     def forward(self, x):
-        xw = self.fc1(x)
+        xw = F.relu(self.fc1(x))
 
         # reluかleave_one_out切り分け
         if self.settings["activation"] == "leave_one_out":
-            y = self.leave_one_out(xw)
+            y = self.leave_one_out(self.fc2(xw))
         else:
-            y = F.relu(xw)
+            y = F.relu(self.fc2(xw))
+
+        print(self.h)
+
         return y
 
 
@@ -65,7 +70,8 @@ iris = datasets.load_digits()
 y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
 y[np.arange(len(iris.target)), iris.target] = 1
 X_train, X_test, y_train, y_test = train_test_split(
-    iris.data, y, test_size=0.95)
+    iris.data, y, test_size=0.9)
+print(len(X_train))
 
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
 
@@ -90,7 +96,7 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 plt.ion()
 
-for i in range(3000):
+for i in range(100000):
     optimizer.zero_grad()
     output = net(x)
     loss = criterion(output, y)
