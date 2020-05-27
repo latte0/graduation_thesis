@@ -28,7 +28,7 @@ class Net(nn.Module):
         self.train_X = X
         self.settings = settings
         # バンド幅も推定する
-        self.h = nn.Parameter(torch.tensor(2.0, requires_grad=True))
+        self.h = nn.Parameter(torch.tensor(1.5, requires_grad=True))
 
     # leave_one_out推定量の計算
 
@@ -37,9 +37,12 @@ class Net(nn.Module):
         denominator = 0
         result = []
         # print("h")
-        # print(self.h)
+        print(self.h)
         for j, x_j in enumerate(self.train_X):
-            tmp = gauss(((torch.mv(self.fc1.weight, x_j) - Xw) / self.h))
+            #print(torch.mv(self.fc1.weight, x_j) - Xw)
+            tmp = gauss(((self.fc1(x_j) - Xw) / self.h))
+            # print(len(Xw))
+            tmp[j] = 0
             denominator += tmp
             numerator += tmp * self.Y[j]
 
@@ -70,18 +73,19 @@ X_train, X_test, y_train, y_test = train_test_split(
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
 
 # leave_one_outのために定数として一応用意しておく
-x_static = Variable(torch.from_numpy(X_train).float(), requires_grad=False)
+x_static = torch.tensor(torch.from_numpy(X_train).float(), requires_grad=False)
+print(len(X_train))
 
 
 y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=0.01)
+optimizer = optim.SGD(net.parameters(), lr=1.1)
 criterion = nn.MSELoss()
 
 
-test_input_x = np.linspace(-10, 10, 200)
+test_input_x = np.linspace(-20, 20, 200)
 test_input_x_list = []
 for p in test_input_x:
     test_input_x_list.append([p, p, p, p, p, p, p, p, p, p])
@@ -90,7 +94,7 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 plt.ion()
 
-for i in range(3000):
+for i in range(100000):
     optimizer.zero_grad()
     output = net(x)
     loss = criterion(output, y)
@@ -98,12 +102,14 @@ for i in range(3000):
     loss.backward()
     optimizer.step()
 
-    #test_input_y_torch = net.leave_one_out(test_input_x_torch)
-    #test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
+    if(i % 100 == 0):
+        test_input_y_torch = net.leave_one_out(test_input_x_torch)
+        test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
-    #plt.plot(test_input_x, test_input_y)
-    # plt.pause(0.00000001)
-    # plt.cla()
+        plt.plot(test_input_x, test_input_y)
+        plt.pause(0.00000001)
+        plt.cla()
+    print(i)
 
 
 plt.ioff()

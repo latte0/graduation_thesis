@@ -29,7 +29,7 @@ class Net(nn.Module):
         self.train_X = X
         self.settings = settings
         # バンド幅も推定する
-        self.h = nn.Parameter(torch.tensor(1.0, requires_grad=True))
+        self.h = nn.Parameter(torch.tensor(1.5, requires_grad=True))
 
     # leave_one_out推定量の計算
 
@@ -42,6 +42,8 @@ class Net(nn.Module):
         for j, x_j in enumerate(self.train_X):
             tmp = gauss(((torch.mv(self.fc2.weight, F.relu(
                 torch.mv(self.fc1.weight, x_j))) - Zw) / self.h))
+
+            tmp[j] = 0
             denominator += tmp
             numerator += tmp * self.Y[j]
 
@@ -83,11 +85,11 @@ y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=0.01)
+optimizer = optim.SGD(net.parameters(), lr=25.1)
 criterion = nn.MSELoss()
 
 
-test_input_x = np.linspace(-10, 10, 200)
+test_input_x = np.linspace(-20, 20, 200)
 test_input_x_list = []
 for p in test_input_x:
     test_input_x_list.append([p, p, p, p, p, p, p, p, p, p])
@@ -104,12 +106,13 @@ for i in range(100000):
     loss.backward()
     optimizer.step()
 
-    #test_input_y_torch = net.leave_one_out(test_input_x_torch)
-    #test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
+    if(i % 1 == 0):
+        test_input_y_torch = net.leave_one_out(test_input_x_torch)
+        test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
-    #plt.plot(test_input_x, test_input_y)
-    # plt.pause(0.00000001)
-    # plt.cla()
+        plt.plot(test_input_x, test_input_y)
+        plt.pause(0.00000001)
+        plt.cla()
 
 
 plt.ioff()
