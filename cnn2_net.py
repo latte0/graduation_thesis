@@ -22,17 +22,16 @@ class Net(nn.Module):
 
     def __init__(self, Y, X, settings):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv1 = nn.Conv2d(1, 5, 3, 1)
 
-        self.fc1 = nn.Linear(1024, 128, bias=False)
-        self.fc2 = nn.Linear(128, 10, bias=False)
+        self.fc1 = nn.Linear(180, 10, bias=False)
+
         # leave_ont_outのために事前に入力と出力をセットしておく
         self.Y = Y
         self.train_X = X
         self.settings = settings
         # バンド幅も推定する
-        self.h = nn.Parameter(torch.tensor(0.3, requires_grad=True))
+        self.h = nn.Parameter(torch.tensor(0.05, requires_grad=True))
 
     # leave_one_out推定量の計算
 
@@ -43,14 +42,18 @@ class Net(nn.Module):
         # print("h")
         # print(self.h)
         for j, x_j in enumerate(self.train_X):
+            print(x_j.size())
             x_j = torch.reshape(x_j, (1, 1, 8, 8))
+            print(x_j.size())
             x = F.relu(self.conv1(x_j))
             # If the size is a square you can only specify a single number
-            x = F.relu(self.conv2(x))
             x = x.view(-1, self.num_flat_features(x))
-            x = F.relu(self.fc1(x))
-            Xw = self.fc2(x)
+            Xw = self.fc1(x)
             tmp = gauss(((Xw - Zw) / self.h))
+            print(self.train_X.size())
+            print(Zw.size())
+            print(tmp.size())
+            tmp[j] = 0
 
             denominator += tmp
             numerator += tmp * self.Y[j]
@@ -71,13 +74,10 @@ class Net(nn.Module):
     def forward(self, x):
         x = F.relu(self.conv1(x))
         # If the size is a square you can only specify a single number
-        x = F.relu(self.conv2(x))
-        x = x.view(-1, self.num_flat_features(x))
-        xw = F.relu(self.fc1(x))
-
+        xw = x.view(-1, self.num_flat_features(x))
         # reluかleave_one_out切り分け
         if self.settings["activation"] == "leave_one_out":
-            y = self.leave_one_out(self.fc2(xw))
+            y = self.leave_one_out(self.fc1(xw))
         else:
             y = F.relu(self.fc2(xw))
 
@@ -106,11 +106,11 @@ y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=2.1)
+optimizer = optim.SGD(net.parameters(), lr=40.1)
 criterion = nn.MSELoss()
 
 
-test_input_x = np.linspace(-20, 20, 200)
+test_input_x = np.linspace(-200, 200, 200)
 test_input_x_list = []
 for p in test_input_x:
     test_input_x_list.append([p, p, p, p, p, p, p, p, p, p])
@@ -135,13 +135,14 @@ for i in range(100000):
         plt.pause(0.00000001)
         plt.cla()
 
-    # テストデータの出力のaccuracyを学習ステップごとに行ってみる
-    outputs = net(Variable(torch.from_numpy(X_test).float()))
-    _, predicted = torch.max(outputs.data, 1)
-    y_predicted = predicted.numpy()
-    y_true = np.argmax(y_test, axis=1)
-    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-    print('accuracy: {0}%'.format(accuracy))
+
+# テストデータの出力のaccuracyを学習ステップごとに行ってみる
+outputs = net(Variable(torch.from_numpy(X_test).float()))
+_, predicted = torch.max(outputs.data, 1)
+y_predicted = predicted.numpy()
+y_true = np.argmax(y_test, axis=1)
+accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+print('accuracy: {0}%'.format(accuracy))
 
 
 plt.ioff()

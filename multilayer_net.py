@@ -40,8 +40,9 @@ class Net(nn.Module):
         # print("h")
         # print(self.h)
         for j, x_j in enumerate(self.train_X):
-            tmp = gauss(((torch.mv(self.fc2.weight, F.relu(
-                torch.mv(self.fc1.weight, x_j))) - Zw) / self.h))
+
+            Xw = self.fc2(F.relu(self.fc1(x_j)))
+            tmp = gauss((Xw - Zw) / self.h)
 
             tmp[j] = 0
             denominator += tmp
@@ -71,11 +72,8 @@ class Net(nn.Module):
 iris = datasets.load_digits()
 y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
 y[np.arange(len(iris.target)), iris.target] = 1
-x_before = iris.data
-x_before = x_before/255
-x_before = x_before.reshape(-1, 1, 8, 8)
 X_train, X_test, y_train, y_test = train_test_split(
-    x_before.data, y, test_size=0.9)
+    iris.data, y, test_size=0.9)
 print(len(X_train))
 
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
@@ -88,7 +86,7 @@ y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=25.1)
+optimizer = optim.SGD(net.parameters(), lr=10.1)
 criterion = nn.MSELoss()
 
 
