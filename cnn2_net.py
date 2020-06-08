@@ -30,6 +30,7 @@ class Net(nn.Module):
         self.Y = Y
         self.train_X = X
         self.settings = settings
+        self.test = False
         # バンド幅も推定する
         self.h = nn.Parameter(torch.tensor(1.2, requires_grad=True))
 
@@ -60,6 +61,10 @@ class Net(nn.Module):
 
         g = numerator/denominator
         return g
+
+
+    def set_test(self, test):
+        self.test = test
 
 
     def leave_one_out_output(self, Zw):
@@ -94,7 +99,10 @@ class Net(nn.Module):
         xw = x.view(-1, self.num_flat_features(x))
         # reluかleave_one_out切り分け
         if self.settings["activation"] == "leave_one_out":
-            y = self.leave_one_out(self.fc1(xw))
+            if(not self.test):
+                y = self.leave_one_out(self.fc1(xw))
+            if(self.test):
+                y = self.leave_one_out_output(self.fc1(xw))
         else:
             y = F.relu(self.fc1(xw))
 
@@ -122,8 +130,8 @@ x_static = Variable(torch.from_numpy(X_train).float(), requires_grad=False)
 y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
-net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=1.1)
+net = Net(y, x_static, {"activation": ""})
+optimizer = optim.SGD(net.parameters(), lr=0.01)
 criterion = nn.MSELoss()
 
 
@@ -137,6 +145,7 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 plt.ion()
 
 for i in range(100000):
+    net.set_test(False)
     optimizer.zero_grad()
     output = net(x)
     loss = criterion(output, y)
@@ -154,8 +163,9 @@ for i in range(100000):
         plt.cla()
     
 
+    net.set_test(True)
 
-    '''
+    
     # テストデータの出力のaccuracyを学習ステップごとに行ってみる
     outputs = net(Variable(torch.from_numpy(X_test).float()))
     _, predicted = torch.max(outputs.data, 1)
@@ -163,7 +173,7 @@ for i in range(100000):
     y_true = np.argmax(y_test, axis=1)
     accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
     print('accuracy: {0}%'.format(accuracy))
-    '''
+    
 
 
 plt.ioff()
