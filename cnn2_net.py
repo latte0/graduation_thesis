@@ -31,7 +31,7 @@ class Net(nn.Module):
         self.train_X = X
         self.settings = settings
         # バンド幅も推定する
-        self.h = nn.Parameter(torch.tensor(0.05, requires_grad=True))
+        self.h = nn.Parameter(torch.tensor(1.2, requires_grad=True))
 
     # leave_one_out推定量の計算
 
@@ -41,28 +41,45 @@ class Net(nn.Module):
         result = []
         # print("h")
         # print(self.h)
+        print(self.train_X.size())
         for j, x_j in enumerate(self.train_X):
-            print(x_j.size())
+            #print(x_j.size())
             x_j = torch.reshape(x_j, (1, 1, 8, 8))
-            print(x_j.size())
+            #print(x_j.size())
             x = F.relu(self.conv1(x_j))
+            #print(x.size())
             # If the size is a square you can only specify a single number
             x = x.view(-1, self.num_flat_features(x))
+            #print(x.size())
             Xw = self.fc1(x)
             tmp = gauss(((Xw - Zw) / self.h))
-            print(self.train_X.size())
-            print(Zw.size())
-            print(tmp.size())
             tmp[j] = 0
 
             denominator += tmp
             numerator += tmp * self.Y[j]
 
-            # print(tmp)
-            # print(self.Y[j])
-            # print(tmp * self.Y[j])
         g = numerator/denominator
         return g
+
+
+    def leave_one_out_output(self, Zw):
+        numerator = 0
+        denominator = 0
+        result = []
+        for j, x_j in enumerate(self.train_X):
+            x_j = torch.reshape(x_j, (1, 1, 8, 8))
+            x = F.relu(self.conv1(x_j))
+            # If the size is a square you can only specify a single number
+            x = x.view(-1, self.num_flat_features(x))
+            Xw = self.fc1(x)
+            tmp = gauss(((Xw - Zw) / self.h))
+
+            denominator += tmp
+            numerator += tmp * self.Y[j]
+
+        g = numerator/denominator
+        return g
+
 
     def num_flat_features(self, x):
         size = x.size()[1:]  # all dimensions except the batch dimension
@@ -79,7 +96,7 @@ class Net(nn.Module):
         if self.settings["activation"] == "leave_one_out":
             y = self.leave_one_out(self.fc1(xw))
         else:
-            y = F.relu(self.fc2(xw))
+            y = F.relu(self.fc1(xw))
 
         return y
 
@@ -89,10 +106,10 @@ iris = datasets.load_digits()
 y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
 y[np.arange(len(iris.target)), iris.target] = 1
 x_before = iris.data
-x_before = x_before/255
+x_before = x_before
 x_before = x_before.reshape(-1, 1, 8, 8)
 X_train, X_test, y_train, y_test = train_test_split(
-    x_before, y, test_size=0.8)
+    x_before, y, test_size=0.5)
 print(len(X_train))
 
 
@@ -106,11 +123,11 @@ y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=40.1)
+optimizer = optim.SGD(net.parameters(), lr=1.1)
 criterion = nn.MSELoss()
 
 
-test_input_x = np.linspace(-200, 200, 200)
+test_input_x = np.linspace(-20, 20, 200)
 test_input_x_list = []
 for p in test_input_x:
     test_input_x_list.append([p, p, p, p, p, p, p, p, p, p])
@@ -127,22 +144,26 @@ for i in range(100000):
     loss.backward()
     optimizer.step()
 
+    
     if(i % 1 == 0):
-        test_input_y_torch = net.leave_one_out(test_input_x_torch)
+        test_input_y_torch = net.leave_one_out_output(test_input_x_torch)
         test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
         plt.plot(test_input_x, test_input_y)
         plt.pause(0.00000001)
         plt.cla()
+    
 
 
-# テストデータの出力のaccuracyを学習ステップごとに行ってみる
-outputs = net(Variable(torch.from_numpy(X_test).float()))
-_, predicted = torch.max(outputs.data, 1)
-y_predicted = predicted.numpy()
-y_true = np.argmax(y_test, axis=1)
-accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-print('accuracy: {0}%'.format(accuracy))
+    '''
+    # テストデータの出力のaccuracyを学習ステップごとに行ってみる
+    outputs = net(Variable(torch.from_numpy(X_test).float()))
+    _, predicted = torch.max(outputs.data, 1)
+    y_predicted = predicted.numpy()
+    y_true = np.argmax(y_test, axis=1)
+    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    print('accuracy: {0}%'.format(accuracy))
+    '''
 
 
 plt.ioff()

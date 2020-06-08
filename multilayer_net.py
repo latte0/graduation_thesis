@@ -48,11 +48,27 @@ class Net(nn.Module):
             denominator += tmp
             numerator += tmp * self.Y[j]
 
-            # print(tmp)
-            # print(self.Y[j])
-            # print(tmp * self.Y[j])
         g = numerator/denominator
         return g
+
+
+
+    def leave_one_out_output(self, Zw):
+        numerator = 0
+        denominator = 0
+        result = []
+        # print("h")
+        # print(self.h)
+        for j, x_j in enumerate(self.train_X):
+
+            Xw = self.fc2(F.relu(self.fc1(x_j)))
+            tmp = gauss((Xw - Zw) / self.h)
+            denominator += tmp
+            numerator += tmp * self.Y[j]
+
+        g = numerator/denominator
+        return g
+
 
     def forward(self, x):
         xw = F.relu(self.fc1(x))
@@ -86,11 +102,11 @@ y = Variable(torch.from_numpy(y_train).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, x_static, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=10.1)
+optimizer = optim.SGD(net.parameters(), lr=1.1)
 criterion = nn.MSELoss()
 
 
-test_input_x = np.linspace(-20, 20, 200)
+test_input_x = np.linspace(-200, 200, 200)
 test_input_x_list = []
 for p in test_input_x:
     test_input_x_list.append([p, p, p, p, p, p, p, p, p, p])
@@ -108,7 +124,7 @@ for i in range(100000):
     optimizer.step()
 
     if(i % 1 == 0):
-        test_input_y_torch = net.leave_one_out(test_input_x_torch)
+        test_input_y_torch = net.leave_one_out_output(test_input_x_torch)
         test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
         plt.plot(test_input_x, test_input_y)
