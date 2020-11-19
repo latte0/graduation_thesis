@@ -14,6 +14,11 @@ from sklearn.datasets import load_digits
 # pytorchのガウス関数
 
 DATA_OUTPUT_LENGTH = 4
+AVE = 5
+
+STEP = 2000
+
+LR=0.01
 
 def gauss(x, a=1, mu=0, sigma=1):
     return a * torch.exp(-(x - mu)**2 / (2*sigma**2))
@@ -26,6 +31,8 @@ def create_list_data(p):
 
 
 loss_list = []
+loss_list_sigmoid = []
+loss_list_relu = []
 acc_list = []
 
 
@@ -90,9 +97,12 @@ class Net(nn.Module):
                 y = self.leave_one_out(self.fc1(x))
             if(self.test):
                 y = self.leave_one_out_output(self.fc1(x))
-        else:
+        if self.settings["activation"] == "sigmoid":
             xw = self.fc1(x)
             y = self.sigmoid(xw)
+        if self.settings["activation"] == "relu":
+            xw = self.fc1(x)
+            y = F.relu(xw)
         return y
 
 
@@ -106,7 +116,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 X_calc, _, y_calc, _ = train_test_split(
     iris.data, y, test_size=0.90)
-
+print(len(X_calc))
 
 
 
@@ -122,7 +132,13 @@ y_calc = Variable(torch.from_numpy(y_calc).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, y_calc, x_static, x_static_calc, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=1.01)
+net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
+net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+
+optimizer = optim.SGD(net.parameters(), lr=LR)
+optimizer_sigmoid = optim.SGD(net_sigmoid.parameters(), lr=LR)
+optimizer_relu = optim.SGD(net_relu.parameters(), lr=LR)
+
 criterion = nn.MSELoss()
 
 
@@ -136,17 +152,29 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 plt.ion()
 
-for i in range(3000):
-    net.set_test(True)
-    optimizer.zero_grad()
-    output = net(x)
-    loss = criterion(output, y)
-    print(i)
-    print(loss)
-    loss.backward()
-    optimizer.step()
+for i in range(0,AVE):
 
-    loss_list.append(loss)
+    for j in range(STEP):
+        net.set_test(True)
+        optimizer.zero_grad()
+        output = net(x)
+        loss = criterion(output, y)
+        #print(i)
+        #print(loss)
+        loss.backward()
+        optimizer.step()
+
+        loss_list.append(loss)
+
+    net.set_test(True)
+    outputs = net(Variable(torch.from_numpy(X_test).float()))
+    _, predicted = torch.max(outputs.data, 1)
+    y_predicted = predicted.numpy()
+    y_true = np.argmax(y_test, axis=1)
+    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    print('accuracy: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
 
     '''
     if(i % 100 == 0):
@@ -157,8 +185,8 @@ for i in range(3000):
         plt.pause(0.00000001)
         plt.cla()
     '''
-    
 
+    '''
     net.set_test(True)
     # テストデータの出力のaccuracyを学習ステップごとに行ってみる
     outputs = net(Variable(torch.from_numpy(X_test).float()))
@@ -168,13 +196,124 @@ for i in range(3000):
     y_true = np.argmax(y_test, axis=1)
     accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
     print('accuracy: {0}%'.format(accuracy))
+    '''
+    if (i != AVE-1 ): 
+        net = Net(y, y_calc, x_static, x_static_calc, {"activation": "leave_one_out"})
+        optimizer = optim.SGD(net.parameters(), lr=LR)
+        print("reset")
+        loss_list = []
+
+
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+acc_list=[]
+
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        optimizer_sigmoid.zero_grad()
+        output = net_sigmoid(x)
+        loss_sigmoid = criterion(output, y)
+        #print(i)
+        #print(loss_sigmoid)
+        loss_sigmoid.backward()
+        optimizer_sigmoid.step()
+
+    loss_list_sigmoid.append(loss_sigmoid)
+    net_sigmoid.set_test(True)
+    outputs = net_sigmoid(Variable(torch.from_numpy(X_test).float()))
+    _, predicted = torch.max(outputs.data, 1)
+    y_predicted = predicted.numpy()
+    y_true = np.argmax(y_test, axis=1)
+    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    print('accuracy: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+
+
+    if (i != AVE-1 ): 
+        net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
+        optimizer_sigmoid = optim.SGD(net_sigmoid.parameters(), lr=LR)
+        loss_sigmoid_list = []
+
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+acc_list=[]
+for i in range(0,AVE):
+
+
+    for j in range(STEP):
+        optimizer_relu.zero_grad()
+        output = net_relu(x)
+        loss_relu = criterion(output, y)
+        #print(i)
+        #print(loss_relu)
+        loss_relu.backward()
+        optimizer_relu.step()
+
+        loss_list_relu.append(loss_relu)
+
+    net_relu.set_test(True)
+    outputs = net_relu(Variable(torch.from_numpy(X_test).float()))
+    _, predicted = torch.max(outputs.data, 1)
+    y_predicted = predicted.numpy()
+    y_true = np.argmax(y_test, axis=1)
+    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    print('accuracy: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+
+
+    if (i != AVE-1 ): 
+        net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+        optimizer_relu = optim.SGD(net_relu.parameters(), lr=LR)
+        loss_relu_list = []
+
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
 
 
 plt.ioff()
 #plt.show()
 
 
+outputs = net(Variable(torch.from_numpy(X_test).float()))
+_, predicted = torch.max(outputs.data, 1)
+#print(predicted)
+y_predicted = predicted.numpy()
+y_true = np.argmax(y_test, axis=1)
+accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+print('accuracy: {0}%'.format(accuracy))
+
+
+outputs = net_sigmoid(Variable(torch.from_numpy(X_test).float()))
+_, predicted = torch.max(outputs.data, 1)
+#print(predicted)
+y_predicted = predicted.numpy()
+y_true = np.argmax(y_test, axis=1)
+accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+print('accuracy: {0}%'.format(accuracy))
+
+
+outputs = net_relu(Variable(torch.from_numpy(X_test).float()))
+_, predicted = torch.max(outputs.data, 1)
+#print(predicted)
+y_predicted = predicted.numpy()
+y_true = np.argmax(y_test, axis=1)
+accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+print('accuracy: {0}%'.format(accuracy))
+
+
 plt.plot( loss_list )
+plt.plot( loss_list_sigmoid )
+plt.plot( loss_list_relu )
+
 plt.show()
 
 # utility function to predict for an unknown data

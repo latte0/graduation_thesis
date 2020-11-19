@@ -13,22 +13,62 @@ import numpy as np
 
 # pytorchのガウス関数
 
-#DATA_OUTPUT_LENGTH = 3
-#DATA_MID_LENGTH = 13
-#DATA_INPUT_LENGTH = 13
+def swish(x):
+    return x * torch.sigmoid(x)
 
 
+def mish(x):
+    return x * torch.tanh(F.softplus(x))
+
+
+
+AVE = 3
+LR = 0.000001
+STEP = 500
+
+
+'''
+DATA_TYPE = "label"
+DATA_OUTPUT_LENGTH = 3
+DATA_MID_LENGTH = 40
+DATA_INPUT_LENGTH = 13
+iris = datasets.load_wine()
+'''
+
+'''
+DATA_TYPE = "label"
 DATA_OUTPUT_LENGTH = 3
 DATA_MID_LENGTH = 3
 DATA_INPUT_LENGTH = 4
+iris = datasets.load_iris()
+'''
 
-#DATA_OUTPUT_LENGTH = 10
-#DATA_MID_LENGTH = 10
-#DATA_INPUT_LENGTH = 64
+'''
+DATA_TYPE = "label"
+DATA_OUTPUT_LENGTH = 10
+DATA_MID_LENGTH = 100
+DATA_INPUT_LENGTH = 64
+iris = datasets.load_digits()
+'''
+
+
+DATA_TYPE = "reg"
+DATA_OUTPUT_LENGTH = 1
+DATA_MID_LENGTH = 20
+DATA_INPUT_LENGTH = 13
+iris = datasets.load_boston()
+
 
 loss_list = []
+loss_sigmoid_list = []
+loss_relu_list = []
 acc_list = []
 
+
+
+def weight_reset(m):
+    if isinstance(m, nn.Linear):
+        m.reset_parameters()
 
 def gauss(x, a=1, mu=0, sigma=1):
     return a * torch.exp(-(x - mu)**2 / (2*sigma**2))
@@ -199,33 +239,9 @@ class Net(nn.Module):
         self.calc = calc
 
     def forward(self, x):
-        if (self.middle):
-            xw = self.fc1(x)
-            print(self.fc1.weight)
-            xw1 = self.middle_layer_leave_one_out_output(xw)
-            if(not self.calc):
-                return xw1
-            else:
-                xw = self.fc2(xw)
-                y = self.leave_one_out_output(xw)
-                return y
-            '''
-            #print(xw1)
-            weight = torch.from_numpy(self.fc2.weight.to('cpu').detach().numpy().copy()).float()
-            #print(weight)
-            res = []
-            for xw_child in xw1:
-                xw_child_mut =  torch.mv( weight , xw_child)
-                res.append(xw_child_mut.tolist())
-            xw = torch.from_numpy(np.array(res)).float()
-            xw = self.fc2(xw)
-            #print(xw)
-            #print(self.fc2(xw1))
-            print("bbbbbb")
-            '''
-        else:
-            xw = F.relu(self.fc1(x))
-            xw = self.fc2(xw)
+
+        xw = F.relu(self.fc1(x))
+        xw = self.fc2(xw)
 
         # reluかleave_one_out切り分け
         if self.settings["activation"] == "leave_one_out":
@@ -233,26 +249,45 @@ class Net(nn.Module):
                 y = self.leave_one_out(xw)
             if(self.test):
                 y = self.leave_one_out_output(xw)
-        else:
+        elif self.settings["activation"] == "sigmoid":
             y = self.sigmoid(xw)
+        elif self.settings["activation"] == "relu":
+            y = F.relu(xw)
+        elif self.settings["activation"] == "linear":
+            y = xw
+        elif self.settings["activation"] == "swish":
+            y = swish(xw)
+        elif self.settings["activation"] == "mish":
+            y = mish(xw)
 
         return y
 
 
 # データの用意
 
-#iris = datasets.load_digits()
-iris = datasets.load_iris()
-#iris = datasets.load_wine()
-y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
-y[np.arange(len(iris.target)), iris.target] = 1
+
+if DATA_TYPE=="label":
+    y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
+    y[np.arange(len(iris.target)), iris.target] = 1
+    print(y)
+
+if DATA_TYPE=="reg":
+    y = np.zeros((len(iris.target), 1), dtype=int)
+    for i, x in enumerate(iris.target):
+        y[i] = [x]
+    print(y)
+
 X_train, X_test, y_train, y_test = train_test_split(
-    iris.data, y, test_size=0.9)
+    iris.data, y, test_size=0.2)
+print(len(X_train))
+print(len(X_test))
 
+#0.2
 
-X_calc, _, y_calc, _ = train_test_split(
-    iris.data, y, test_size=0.9)
+_, X_calc, _, y_calc = train_test_split(
+    iris.data, y, test_size=0.40)
 
+#0.04
 print(len(X_calc))
 
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
@@ -267,7 +302,15 @@ y_calc = Variable(torch.from_numpy(y_calc).float())
 
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net = Net(y, y_calc, x_static, x_static_calc, {"activation": "leave_one_out"})
-optimizer = optim.SGD(net.parameters(), lr=1.05)
+net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
+net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+net_linear = Net(y, y_calc, x_static, x_static_calc, {"activation": "linear"})
+net_mish = Net(y, y_calc, x_static, x_static_calc, {"activation": "mish"})
+net_swish = Net(y, y_calc, x_static, x_static_calc, {"activation": "swish"})
+
+optimizer = optim.SGD(net.parameters(), lr=LR)
+optimizer_sigmoid = optim.SGD(net_sigmoid.parameters(), lr=LR)
+optimizer_relu = optim.SGD(net_relu.parameters(), lr=LR)
 criterion = nn.MSELoss()
 
 
@@ -278,43 +321,505 @@ for p in test_input_x:
 
 test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
-
 plt.ion()
 
-for i in range(100):
-    net.set_test(True)
-    optimizer.zero_grad()
-    output = net(x)
-    loss = criterion(output, y)
-    loss.backward()
-    optimizer.step()
 
-    loo = net.get_loo(0)
 
+
+
+
+
+def calc_with_net(neural_network, name)
+
+
+
+    acc_list=[]
+    for i in range(0,AVE):
+
+        for j in range(STEP):
+            optimizer_relu.zero_grad()
+            output = net_mish(x)
+            loss_relu = criterion(output, y)
+            loss_relu.backward()
+            optimizer_relu.step()
+            #print(loss_relu)
+            loss_relu_list.append(loss_relu)
+
+
+
+
+        neural_network.set_test(True)
+        outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
+        if DATA_TYPE=="label":
+            _, predicted = torch.max(outputs.data, 1)
+        if DATA_TYPE=="reg":
+            predicted = outputs.data
+        y_predicted = predicted.numpy()
+
+
+        if DATA_TYPE=="label":
+            y_true = np.argmax(y_test, axis=1)
+            accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+        if DATA_TYPE=="reg":
+            y_true = y_test
+            #print(y_test)
+            #print(y_predicted)
+            accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+            
+
+
+        if DATA_TYPE=="label":
+            print('accuracy: {0}%'.format(accuracy))
+        if DATA_TYPE=="reg":
+            print('accumulate: {0}%'.format(accuracy))
+
+        acc_list.append(accuracy)
+        if (i != AVE-1 ): 
+            neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+            optimizer_relu = optim.SGD(neural_network.parameters(), lr=LR)
+            loss_relu_list = []
+
+
+
+    print(name)
+    print("average")
+    ave = sum(acc_list) / len(acc_list)
+    print(ave)
+
+    
+    return ave, acc_list, loss_relu_list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# leave one out perceptron
+
+'''
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        
+        net.set_test(True)
+        optimizer.zero_grad()
+        output = net(x)
+        #print(output)
+        loss = criterion(output, y)
+        print(loss)
+        loss.backward()
+        optimizer.step()
+        loss_list.append(loss)
+        print(j)
+
+
+
+        if(j % 1 == 0):
+            test_input_y_torch = net.leave_one_out_output(test_input_x_torch)
+            test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
+
+            plt.plot(test_input_x, test_input_y)
+            plt.pause(0.00000001)
+            plt.cla()
+
+
+
+
+    
     net.set_test(True)
-    outputs = net(Variable(torch.from_numpy(X_train).float()))
-    _, predicted = torch.max(outputs.data, 1)
+    outputs = net(Variable(torch.from_numpy(X_test).float()))
+    if DATA_TYPE=="label":
+        _, predicted = torch.max(outputs.data, 1)
+    if DATA_TYPE=="reg":
+        predicted = outputs.data
     y_predicted = predicted.numpy()
-    y_true = np.argmax(y_train, axis=1)
-    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-    print('accuracy: {0}%'.format(accuracy))
 
-    print(i)
-
-    if(i % 1 == 0):
-        test_input_y_torch = net.leave_one_out_output(test_input_x_torch)
-        test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
-        # print(test_input_y)
-
-        plt.plot(test_input_x, test_input_y)
-        plt.pause(0.00000001)
-        plt.cla()
-
-    loss_list.append(loss)
-
-    # テストデータの出力のaccuracyを学習ステップごとに行ってみる
+    if DATA_TYPE=="label":
+        y_true = np.argmax(y_test, axis=1)
+        accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    if DATA_TYPE=="reg":
+        y_true = y_test
+        accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
 
 
+
+    if DATA_TYPE=="label":
+        print('accuracy: {0}%'.format(accuracy))
+    if DATA_TYPE=="reg":
+        print('accumulate: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+
+    
+    if (i != AVE-1 ): 
+        net = Net(y, y_calc, x_static, x_static_calc, {"activation": "leave_one_out"})
+        optimizer = optim.SGD(net.parameters(), lr=LR)
+        print("reset")
+        loss_list = []
+
+print("leave one out")
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+'''
+
+'''
+ave, acc_list, loss_relu_list = calc_with_net(net_sigmoid, "sigmoid")
+ave, acc_list, loss_relu_list = calc_with_net(net_sigmoid, "sigmoid")
+ave, acc_list, loss_relu_list = calc_with_net(net_sigmoid, "sigmoid")
+ave, acc_list, loss_relu_list = calc_with_net(net_sigmoid, "sigmoid")
+ave, acc_list, loss_relu_list = calc_with_net(net_sigmoid, "sigmoid")
+'''
+
+
+
+acc_list=[]
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        optimizer_sigmoid.zero_grad()
+        output = net_sigmoid(x)
+        loss_sigmoid = criterion(output, y)
+        loss_sigmoid.backward()
+        optimizer_sigmoid.step()
+        #print(loss_sigmoid)
+
+        #print("sigmiod")
+        #print(i)
+
+
+        loss_sigmoid_list.append(loss_sigmoid)
+
+
+    net_sigmoid.set_test(True)
+    outputs = net_sigmoid(Variable(torch.from_numpy(X_test).float()))
+    if DATA_TYPE=="label":
+        _, predicted = torch.max(outputs.data, 1)
+    if DATA_TYPE=="reg":
+        predicted = outputs.data
+    y_predicted = predicted.numpy()
+
+    if DATA_TYPE=="label":
+        y_true = np.argmax(y_test, axis=1)
+        accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    if DATA_TYPE=="reg":
+        y_true = y_test
+        accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+
+
+
+    if DATA_TYPE=="label":
+        print('accuracy: {0}%'.format(accuracy))
+    if DATA_TYPE=="reg":
+        print('accumulate: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+
+    if (i != AVE-1 ): 
+        net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
+        optimizer_sigmoid = optim.SGD(net_sigmoid.parameters(), lr=LR)
+        loss_sigmoid_list = []
+
+
+
+print("sigmoid")
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+
+
+
+
+
+
+
+
+
+
+acc_list=[]
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        optimizer_relu.zero_grad()
+        output = net_relu(x)
+        loss_relu = criterion(output, y)
+        loss_relu.backward()
+        optimizer_relu.step()
+        #print(loss_relu)
+        loss_relu_list.append(loss_relu)
+
+
+
+
+    net_relu.set_test(True)
+    outputs = net_relu(Variable(torch.from_numpy(X_test).float()))
+    if DATA_TYPE=="label":
+        _, predicted = torch.max(outputs.data, 1)
+    if DATA_TYPE=="reg":
+        predicted = outputs.data
+    y_predicted = predicted.numpy()
+
+
+    if DATA_TYPE=="label":
+        y_true = np.argmax(y_test, axis=1)
+        accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    if DATA_TYPE=="reg":
+        y_true = y_test
+        #print(y_test)
+        #print(y_predicted)
+        accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+        
+
+
+    if DATA_TYPE=="label":
+        print('accuracy: {0}%'.format(accuracy))
+    if DATA_TYPE=="reg":
+        print('accumulate: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+    if (i != AVE-1 ): 
+        net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+        optimizer_relu = optim.SGD(net_relu.parameters(), lr=LR)
+        loss_relu_list = []
+
+
+print("relu")
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+acc_list=[]
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        optimizer_relu.zero_grad()
+        output = net_linear(x)
+        loss_relu = criterion(output, y)
+        loss_relu.backward()
+        optimizer_relu.step()
+        #print(loss_relu)
+        loss_relu_list.append(loss_relu)
+
+
+
+
+    net_linear.set_test(True)
+    outputs = net_linear(Variable(torch.from_numpy(X_test).float()))
+    if DATA_TYPE=="label":
+        _, predicted = torch.max(outputs.data, 1)
+    if DATA_TYPE=="reg":
+        predicted = outputs.data
+    y_predicted = predicted.numpy()
+
+
+    if DATA_TYPE=="label":
+        y_true = np.argmax(y_test, axis=1)
+        accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    if DATA_TYPE=="reg":
+        y_true = y_test
+        #print(y_test)
+        #print(y_predicted)
+        accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+        
+
+
+    if DATA_TYPE=="label":
+        print('accuracy: {0}%'.format(accuracy))
+    if DATA_TYPE=="reg":
+        print('accumulate: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+    if (i != AVE-1 ): 
+        net_linear = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+        optimizer_relu = optim.SGD(net_linear.parameters(), lr=LR)
+        loss_relu_list = []
+
+
+print("linear")
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+
+
+
+
+
+
+
+
+
+
+
+acc_list=[]
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        optimizer_relu.zero_grad()
+        output = net_swish(x)
+        loss_relu = criterion(output, y)
+        loss_relu.backward()
+        optimizer_relu.step()
+        #print(loss_relu)
+        loss_relu_list.append(loss_relu)
+
+
+
+
+    net_swish.set_test(True)
+    outputs = net_swish(Variable(torch.from_numpy(X_test).float()))
+    if DATA_TYPE=="label":
+        _, predicted = torch.max(outputs.data, 1)
+    if DATA_TYPE=="reg":
+        predicted = outputs.data
+    y_predicted = predicted.numpy()
+
+
+    if DATA_TYPE=="label":
+        y_true = np.argmax(y_test, axis=1)
+        accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    if DATA_TYPE=="reg":
+        y_true = y_test
+        #print(y_test)
+        #print(y_predicted)
+        accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+        
+
+
+    if DATA_TYPE=="label":
+        print('accuracy: {0}%'.format(accuracy))
+    if DATA_TYPE=="reg":
+        print('accumulate: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+    if (i != AVE-1 ): 
+        net_swish = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+        optimizer_relu = optim.SGD(net_swish.parameters(), lr=LR)
+        loss_relu_list = []
+
+
+print("swish")
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+acc_list=[]
+for i in range(0,AVE):
+
+    for j in range(STEP):
+        optimizer_relu.zero_grad()
+        output = net_mish(x)
+        loss_relu = criterion(output, y)
+        loss_relu.backward()
+        optimizer_relu.step()
+        #print(loss_relu)
+        loss_relu_list.append(loss_relu)
+
+
+
+
+    net_mish.set_test(True)
+    outputs = net_mish(Variable(torch.from_numpy(X_test).float()))
+    if DATA_TYPE=="label":
+        _, predicted = torch.max(outputs.data, 1)
+    if DATA_TYPE=="reg":
+        predicted = outputs.data
+    y_predicted = predicted.numpy()
+
+
+    if DATA_TYPE=="label":
+        y_true = np.argmax(y_test, axis=1)
+        accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+    if DATA_TYPE=="reg":
+        y_true = y_test
+        #print(y_test)
+        #print(y_predicted)
+        accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+        
+
+
+    if DATA_TYPE=="label":
+        print('accuracy: {0}%'.format(accuracy))
+    if DATA_TYPE=="reg":
+        print('accumulate: {0}%'.format(accuracy))
+
+    acc_list.append(accuracy)
+    if (i != AVE-1 ): 
+        net_mish = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
+        optimizer_relu = optim.SGD(net_mish.parameters(), lr=LR)
+        loss_relu_list = []
+
+
+print("mish")
+print("average")
+ave = sum(acc_list) / len(acc_list)
+print(ave)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 net.create_middle_layer_y()
 
 
@@ -336,10 +841,8 @@ for i in range(10000):
     loss.backward()
     optimizer.step()
 
-    '''
-    net.set_test(True)
-    net.set_middle(False)
-    '''
+    #net.set_test(True)
+    #pip install -U scikit-learnnet.set_middle(False)
 
     net.set_calc(True)
 
@@ -363,13 +866,11 @@ for i in range(10000):
         plt.cla()
 
     loss_list.append(loss)
-
-    # テストデータの出力のaccuracyを学習ステップごとに行ってみる
+# テストデータの出力のaccuracyを学習ステップごとに行ってみる
 
 plt.ioff()
 plt.show()
 
-'''
 net.set_test(True)
 outputs = net(Variable(torch.from_numpy(X_test).float()))
 _, predicted = torch.max(outputs.data, 1)
@@ -378,7 +879,33 @@ y_true = np.argmax(y_test, axis=1)
 accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
 print('accuracy: {0}%'.format(accuracy))
 
+outputs = net_sigmoid(Variable(torch.from_numpy(X_test).float()))
+_, predicted = torch.max(outputs.data, 1)
+y_predicted = predicted.numpy()
+y_true = np.argmax(y_test, axis=1)
+accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+print('accuracy: {0}%'.format(accuracy))
+
+outputs = net_relu(Variable(torch.from_numpy(X_test).float()))
+_, predicted = torch.max(outputs.data, 1)
+y_predicted = predicted.numpy()
+y_true = np.argmax(y_test, axis=1)
+accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+print('accuracy: {0}%'.format(accuracy))
+
+'''
+
+
 
 plt.plot( loss_list )
+plt.plot( loss_sigmoid_list )
+plt.plot( loss_relu_list )
+
+
+
 plt.show()
-'''
+
+
+#accuracy: 88%
+#accuracy: 36%
+#accuracy: 16%
