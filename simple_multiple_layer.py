@@ -13,7 +13,7 @@ import numpy as np
 
 
 AVE = 3
-LR = 0.000001
+LR = 0.0000001
 STEP = 200
 
 show_activation_kernel = False
@@ -110,13 +110,14 @@ def mish(x):
 
 
 
-def train(neural_network, net_optimizer, name):
+def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc ):
     print("-----------start--------------")
     print(name)
 
     loss_list = []
     acc_list=[]
     for i in range(0,AVE):
+        neural_network.set_test(False)
 
         for j in range(STEP):
             net_optimizer.zero_grad()
@@ -141,12 +142,15 @@ def train(neural_network, net_optimizer, name):
             
 
         neural_network.set_test(True)
+        print(X_test)
         outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
+        print(outputs)
         if DATA_TYPE=="label":
             _, predicted = torch.max(outputs.data, 1)
         if DATA_TYPE=="reg":
             predicted = outputs.data
         y_predicted = predicted.numpy()
+        print(y_predicted)
 
 
         if DATA_TYPE=="label":
@@ -305,15 +309,11 @@ if DATA_TYPE=="reg":
 
 X_train, X_test, y_train, y_test = train_test_split(
     iris.data, y, test_size=0.2)
-print(len(X_train))
-print(len(X_test))
-
-#0.2
-
+    
 _, X_calc, _, y_calc = train_test_split(
     iris.data, y, test_size=0.40)
 
-#0.04
+    
 print(len(X_calc))
 
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
@@ -374,12 +374,12 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 
 #plt.ion()
-ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kernel, "kernel")
-ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = train(net_sigmoid, optimizer_sigmoid, "sigmoid")
-ave_relu, acc_list_relu, loss_list_relu = train(net_relu, optimizer_relu, "relu")
-ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear")
-ave_mish, acc_list_mish, loss_list_mish = train(net_mish, optimizer_mish, "mish")
-ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "swish")
+ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kernel, "kernel", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
+ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = train(net_sigmoid, optimizer_sigmoid, "sigmoid", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
+ave_relu, acc_list_relu, loss_list_relu = train(net_relu, optimizer_relu, "relu", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
+ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
+ave_mish, acc_list_mish, loss_list_mish = train(net_mish, optimizer_mish, "mish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
+ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "swish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
 
 
 

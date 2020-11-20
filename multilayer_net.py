@@ -12,7 +12,7 @@ import math
 import numpy as np
 
 
-AVE = 3
+AVE = 1
 LR = 0.000001
 STEP = 200
 
