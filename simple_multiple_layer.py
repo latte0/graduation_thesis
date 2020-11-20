@@ -16,6 +16,8 @@ AVE = 3
 LR = 0.000001
 STEP = 200
 
+show_activation_kernel = False
+
 
 select_data="linnerud"
 
@@ -69,14 +71,6 @@ if select_data=="linnerud":
 
 
 
-
-
-
-
-def weight_reset(m):
-    if isinstance(m, nn.Linear):
-        m.reset_parameters()
-
 def gauss(x, a=1, mu=0, sigma=1):
     return a * torch.exp(-(x - mu)**2 / (2*sigma**2))
 
@@ -104,29 +98,6 @@ def predict(X):
     return np.argmax(outputs.data.numpy())
 
 
-def calc_inverse(x, f):
-    k = -20.0
-    nearest = 0.0
-    while 1:
-
-        res = f(k)
-        if(abs(x - res) < abs(nearest - res)):
-            nearest = k
-        if(res <= x + 0.5 and res >= x - 0.5):
-            return k
-        elif (res is None):
-            k += 1
-        else:
-            k += 1
-        if(k > 20):
-            return nearest
-
-
-def kernel_output_inverse(x, f):
-    pass
-
-
-
 
 
 def swish(x):
@@ -135,6 +106,87 @@ def swish(x):
 
 def mish(x):
     return x * torch.tanh(F.softplus(x))
+
+
+
+
+def train(neural_network, net_optimizer, name):
+    print("-----------start--------------")
+    print(name)
+
+    loss_list = []
+    acc_list=[]
+    for i in range(0,AVE):
+
+        for j in range(STEP):
+            net_optimizer.zero_grad()
+            output = neural_network(x)
+            loss = criterion(output, y)
+            loss.backward()
+            net_optimizer.step()
+            #if j > STEP/100:
+            loss_list.append(loss.item())
+            #print(loss)
+            if(name == "kernel"):
+                print(j)
+
+            
+            if(j % 1 == 0 and name == "kernel" and show_activation_kernel):
+                test_input_y_torch = neural_network.kernel_output(test_input_x_torch)
+                test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
+
+                plt.plot(test_input_x, test_input_y)
+                plt.pause(0.00000001)
+                plt.cla()
+            
+
+        neural_network.set_test(True)
+        outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
+        if DATA_TYPE=="label":
+            _, predicted = torch.max(outputs.data, 1)
+        if DATA_TYPE=="reg":
+            predicted = outputs.data
+        y_predicted = predicted.numpy()
+
+
+        if DATA_TYPE=="label":
+            y_true = np.argmax(y_test, axis=1)
+            accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
+        if DATA_TYPE=="reg":
+            y_true = y_test
+            #print(y_test)
+            #print(y_predicted)
+            accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+            
+
+
+        if DATA_TYPE=="label":
+            print('accuracy: {0}%'.format(accuracy))
+        if DATA_TYPE=="reg":
+            print('accumulate: {0}'.format(accuracy))
+
+        acc_list.append(accuracy)
+
+        if (i != AVE-1 ): 
+            neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
+            net_optimizer = optim.SGD(neural_network.parameters(), lr=LR)
+            loss_list = []
+            acc_list=[]
+
+
+
+    ave = sum(acc_list) / len(acc_list)
+    print("average{0}", ave)
+    print("-----------finish--------------")
+    
+    return ave, acc_list, loss_list
+
+
+
+
+
+
+
 
 
 
@@ -199,56 +251,6 @@ class Net(nn.Module):
         g = numerator/denominator
         return g
 
-    def middle_layer_kernel_output(self, Zw):
-        numerator = 0
-        denominator = 0
-        result = []
-        for j, x_j in enumerate(self.calc_X):
-
-            Xw = self.fc1(x_j)
-            tmp = gauss((Xw - Zw) / self.h_middle)
-            denominator += tmp
-            numerator += tmp * self.calc_M[j]
-
-        g = numerator/denominator
-        return g
-
-    def get_loo(self, index):
-
-        def _get_loo(x):
-            input_data = torch.from_numpy(
-                np.array(create_list_data(x))).float()
-            output = self.kernel_output(input_data)
-            result = output[index]
-
-            return result
-
-        return _get_loo
-
-    def _create_middle_layer_y(self, data):
-
-        result = []
-        print(len(data))
-        for d in data:
-            M = []
-            for i in range(0, DATA_OUTPUT_LENGTH):
-                loo = self.get_loo(i)
-                M.append(calc_inverse(d[i], loo))
-
-            M_torch = np.array(M)
-            fc2_matrix_num_temp = self.fc2.weight.to(
-                'cpu').detach().numpy().copy()
-            fc2_matrix = np.linalg.inv(fc2_matrix_num_temp)
-            T = np.dot(fc2_matrix, M_torch)
-
-            result.append(T.tolist())
-
-        return torch.from_numpy(np.array(result)).clone().float()
-
-    def create_middle_layer_y(self):
-
-        self.M = self._create_middle_layer_y(self.Y)
-        self.calc_M = self._create_middle_layer_y(self.calc_Y)
 
     def set_test(self, test):
         self.test = test
@@ -358,85 +360,6 @@ test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 
 
-def calc_with_net(neural_network, net_optimizer, name):
-    print("-----------start--------------")
-    print(name)
-
-    loss_list = []
-    acc_list=[]
-    for i in range(0,AVE):
-
-        for j in range(STEP):
-            net_optimizer.zero_grad()
-            output = neural_network(x)
-            loss = criterion(output, y)
-            loss.backward()
-            net_optimizer.step()
-            #if j > STEP/100:
-            loss_list.append(loss.item())
-            #print(loss)
-            if(name == "kernel"):
-                print(j)
-
-            '''
-            if(j % 1 == 0 and name == "kernel"):
-                test_input_y_torch = neural_network.kernel_output(test_input_x_torch)
-                test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
-
-                plt.plot(test_input_x, test_input_y)
-                plt.pause(0.00000001)
-                plt.cla()
-            '''
-
-
-
-        neural_network.set_test(True)
-        outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
-        if DATA_TYPE=="label":
-            _, predicted = torch.max(outputs.data, 1)
-        if DATA_TYPE=="reg":
-            predicted = outputs.data
-        y_predicted = predicted.numpy()
-
-
-        if DATA_TYPE=="label":
-            y_true = np.argmax(y_test, axis=1)
-            accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-        if DATA_TYPE=="reg":
-            y_true = y_test
-            #print(y_test)
-            #print(y_predicted)
-            accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
-            
-
-
-        if DATA_TYPE=="label":
-            print('accuracy: {0}%'.format(accuracy))
-        if DATA_TYPE=="reg":
-            print('accumulate: {0}'.format(accuracy))
-
-        acc_list.append(accuracy)
-
-        if (i != AVE-1 ): 
-            neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
-            net_optimizer = optim.SGD(neural_network.parameters(), lr=LR)
-            loss_list = []
-            acc_list=[]
-
-
-
-    ave = sum(acc_list) / len(acc_list)
-    print("average{0}", ave)
-    print("-----------finish--------------")
-    
-    return ave, acc_list, loss_list
-
-
-
-
-
-
-
 
 
 
@@ -451,12 +374,12 @@ def calc_with_net(neural_network, net_optimizer, name):
 
 
 #plt.ion()
-ave_kernel, acc_list_kernel, loss_list_kernel = calc_with_net(net_kernel, optimizer_kernel, "kernel")
-ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = calc_with_net(net_sigmoid, optimizer_sigmoid, "sigmoid")
-ave_relu, acc_list_relu, loss_list_relu = calc_with_net(net_relu, optimizer_relu, "relu")
-ave_linear, acc_list_linear, loss_list_linear = calc_with_net(net_linear, optimizer_linear, "linear")
-ave_mish, acc_list_mish, loss_list_mish = calc_with_net(net_mish, optimizer_mish, "mish")
-ave_swish, acc_list_swish, loss_list_swish = calc_with_net(net_swish, optimizer_swish, "swish")
+ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kernel, "kernel")
+ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = train(net_sigmoid, optimizer_sigmoid, "sigmoid")
+ave_relu, acc_list_relu, loss_list_relu = train(net_relu, optimizer_relu, "relu")
+ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear")
+ave_mish, acc_list_mish, loss_list_mish = train(net_mish, optimizer_mish, "mish")
+ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "swish")
 
 
 
@@ -475,83 +398,3 @@ plt.show()
 
 
 
-
-
-
-
-
-'''
-net.create_middle_layer_y()
-
-
-net.set_middle(True)
-
-for g in optimizer.param_groups:
-    g['lr'] = 0.005
-
-for i in range(10000):
-    net.set_calc(False)
-    net.set_middle(True)
-    net.set_test(True)
-
-    optimizer.zero_grad()
-    output = net(x)
-    loss = criterion(output, net.M)
-    # print(net.M)
-    print(loss)
-    loss.backward()
-    optimizer.step()
-
-    #net.set_test(True)
-    #pip install -U scikit-learnnet.set_middle(False)
-
-    net.set_calc(True)
-
-    outputs = net(Variable(torch.from_numpy(X_train).float()))
-    _, predicted = torch.max(outputs.data, 1)
-    y_predicted = predicted.numpy()
-    y_true = np.argmax(y_train, axis=1)
-    accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-    print('accuracy: {0}%'.format(accuracy))
-
-    print(i)
-
-    if(i % 1 == 0):
-        test_input_y_torch = net.middle_layer_kernel_output(
-            test_input_x_torch)
-        test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
-        # print(test_input_y)
-
-        plt.plot(test_input_x, test_input_y)
-        plt.pause(0.0000001)
-        plt.cla()
-
-    loss_list.append(loss)
-# テストデータの出力のaccuracyを学習ステップごとに行ってみる
-
-plt.ioff()
-plt.show()
-
-net.set_test(True)
-outputs = net(Variable(torch.from_numpy(X_test).float()))
-_, predicted = torch.max(outputs.data, 1)
-y_predicted = predicted.numpy()
-y_true = np.argmax(y_test, axis=1)
-accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-print('accuracy: {0}%'.format(accuracy))
-
-outputs = net_sigmoid(Variable(torch.from_numpy(X_test).float()))
-_, predicted = torch.max(outputs.data, 1)
-y_predicted = predicted.numpy()
-y_true = np.argmax(y_test, axis=1)
-accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-print('accuracy: {0}%'.format(accuracy))
-
-outputs = net_relu(Variable(torch.from_numpy(X_test).float()))
-_, predicted = torch.max(outputs.data, 1)
-y_predicted = predicted.numpy()
-y_true = np.argmax(y_test, axis=1)
-accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
-print('accuracy: {0}%'.format(accuracy))
-
-'''
