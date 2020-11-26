@@ -10,27 +10,31 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+import random
 
-
-AVE = 1
-STEP = 20
+AVE = 100
+STEP = 5
 
 
 show_activation_kernel = False
 
+#classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
+select_data="linnerud"
+
+
+
+
+LR_classes = [0.000001, 0.00001, 0.0001, 0.001, 0.01]
 LR = 0.00001
 
-#classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
-select_data="boston"
+optim_method_classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
+optim_method="Adam"
 
-#classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
-optim_method="SGD"
+init_method_classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'kaiming_uniform_', 'zeros_', 'ones_']
+init_method = 'kaiming_uniform_'
 
-#classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'xavier_uniform', 'kaiming_uniform_', 'dirac_', 'zeros_', 'ones_']
-init_method = 'kaiming_normal_'
-
-#classes = ['non', 'l1', 'l2']
-reg_method = 'non'
+reg_method_classes = ['non', 'l1', 'l2']
+reg_method = 'l2'
 
 
 if select_data=="wine":
@@ -111,12 +115,8 @@ def init_weights(m):
             torch.nn.init.sparse_(m.weight, sparsity=1)
         if init_method == 'kaiming_normal_':
             torch.nn.init.kaiming_uniform_(m.weight, mode='fan_in', nonlinearity='relu')
-        if init_method == 'xavier_uniform':
-            torch.nn.init.xavier_uniform(m.weight, gain=nn.init.calculate_gain('relu'))
         if init_method == 'kaiming_uniform_':
             torch.nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-        if init_method == 'dirac_':
-            torch.nn.init.dirac_(m.weight)
         if init_method == 'zeros_':
             torch.nn.init.zeros_(m.weight)
         if init_method == 'ones_':
@@ -177,8 +177,7 @@ def mish(x):
 
 def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc ):
     print("-----------start--------------")
-    print(name)
-    #neural_network.apply(init_weights)
+    neural_network.apply(init_weights)
 
     loss_list = []
     acc_list=[]
@@ -192,70 +191,49 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             loss = criterion(output, y)
             loss.backward()
             net_optimizer.step()
-            #if j > STEP/100:
             loss_list.append(loss.item())
-            #print(loss)
-            if(name == "kernel"):
-                if j % 1 == 0:
-                    print(j)
-
             
             if(j % 1 == 0 and name == "kernel" and show_activation_kernel):
                 test_input_y_torch = neural_network.kernel_output(test_input_x_torch)
                 test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
                 plt.plot(test_input_x, test_input_y)
-
-                plt.xlabel('input')
-                plt.ylabel('outuput') 
-                plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=18)
                 plt.pause(0.00000001)
                 plt.cla()
             
 
         neural_network.set_test(True)
-        print(X_test)
         outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
-        print(outputs)
         if DATA_TYPE=="label":
             _, predicted = torch.max(outputs.data, 1)
         if DATA_TYPE=="reg":
             predicted = outputs.data
         y_predicted = predicted.numpy()
-        print(y_predicted)
-
 
         if DATA_TYPE=="label":
             y_true = np.argmax(y_test, axis=1)
             accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
         if DATA_TYPE=="reg":
             y_true = y_test
-            #print(y_test)
-            #print(y_predicted)
+
             try:
                 accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
             except:       
                 error_count+=1     
                 neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
                 net_optimizer = create_optim(neural_network)
-                #neural_network.apply(init_weights)
+                neural_network.apply(init_weights)
                 loss_list = []
                 acc_list=[]
                 continue #your handling code
                     
-
-
-        if DATA_TYPE=="label":
-            print('accuracy: {0}%'.format(accuracy))
-        if DATA_TYPE=="reg":
-            print('accumulate: {0}'.format(accuracy))
 
         acc_list.append(accuracy)
 
         if (i != AVE-1 ): 
             neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
             net_optimizer = create_optim(neural_network)
-            #neural_network.apply(init_weights)
+            neural_network.apply(init_weights)
             loss_list = []
             acc_list=[]
 
@@ -268,7 +246,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             
 
 
-    print("average{0}", ave)
+
     print("AVE:{0}, error_count:{1}", AVE, error_count)
     print("-----------finish--------------")
     
@@ -385,12 +363,10 @@ class Net(nn.Module):
 if DATA_TYPE=="label":
     y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
     y[np.arange(len(iris.target)), iris.target] = 1
-    print(y)
 
 if DATA_TYPE=="reg":
     y = np.zeros((len(iris.target), DATA_OUTPUT_LENGTH), dtype=int)
     for i, x in enumerate(iris.target):
-        print(x)
         if DATA_OUTPUT_LENGTH == 1:
             y[i] = [x]
         else:
@@ -400,7 +376,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     iris.data, y, test_size=0.2)
     
 _, X_calc, _, y_calc = train_test_split(
-    iris.data, y, test_size=0.10)
+    iris.data, y, test_size=0.40)
 
     
 print(len(X_calc))
@@ -416,73 +392,37 @@ y_calc = Variable(torch.from_numpy(y_calc).float())
 
 
 
-# leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
-net_kernel = Net(y, y_calc, x_static, x_static_calc, {"activation": "kernel"})
-net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
-net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
-net_linear = Net(y, y_calc, x_static, x_static_calc, {"activation": "linear"})
-net_mish = Net(y, y_calc, x_static, x_static_calc, {"activation": "mish"})
-net_swish = Net(y, y_calc, x_static, x_static_calc, {"activation": "swish"})
+while 1:
+
+    #classes = ['0.000001', '0.00001', '0.0001', '0.001', '0.01']
+    LR = 0.00001
+
+    #classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
+    optim_method=optim_method_classes[random.randrange(len(optim_method_classes))]
+
+    #classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'kaiming_uniform_', 'zeros_', 'ones_']
+    init_method = init_method_classes[random.randrange(len(init_method_classes))]
+
+    #classes = ['non', 'l1', 'l2']
+    reg_method = reg_method_classes[random.randrange(len(reg_method_classes))]
+
+    print(LR, optim_method, init_method, reg_method )
 
 
+    # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
+    net_kernel = Net(y, y_calc, x_static, x_static_calc, {"activation": "kernel"})
+    optimizer_kernel = create_optim(net_kernel)
 
-optimizer_kernel = create_optim(net_kernel)
-optimizer_sigmoid = create_optim(net_sigmoid)
-optimizer_relu = create_optim(net_relu)
-optimizer_linear = create_optim(net_linear)
-optimizer_mish = create_optim(net_mish)
-optimizer_swish = create_optim(net_swish)
+    criterion = nn.MSELoss()
 
 
+    test_input_x = np.linspace(-50, 50, 200)
+    test_input_x_list = []
+    for p in test_input_x:
+        test_input_x_list.append(create_list_data(p))
+
+    test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
 
 
-criterion = nn.MSELoss()
-
-
-test_input_x = np.linspace(-50, 50, 200)
-test_input_x_list = []
-for p in test_input_x:
-    test_input_x_list.append(create_list_data(p))
-
-test_input_x_torch = torch.from_numpy(np.array(test_input_x_list)).float()
-
-
-
-
-
-
-
-
-
-
-
-
-# leave one out perceptron
-
-
-
-
-#plt.ion()
-plt.ioff()
-ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kernel, "kernel", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
-
-ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = train(net_sigmoid, optimizer_sigmoid, "sigmoid", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
-ave_relu, acc_list_relu, loss_list_relu = train(net_relu, optimizer_relu, "relu", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
-ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
-ave_mish, acc_list_mish, loss_list_mish = train(net_mish, optimizer_mish, "mish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
-ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "swish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
-
-
-
-
-
-
-plt.plot( loss_list_kernel, label='kernel')
-plt.plot( loss_list_linear, label='linear')
-plt.plot( loss_list_relu, label='relu')
-plt.plot( loss_list_mish, label='mish')
-plt.plot( loss_list_swish, label='swish')
-plt.xlabel('step')  # x軸のラベルづけ
-plt.ylabel('loss')  # y軸のラベルづけ
-plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=18)
-plt.show()
+    plt.ioff()
+    ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kernel, "kernel", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc)

@@ -1,0 +1,1089 @@
+1e-05 SGD orthogonal_ non
+-----------start--------------
+error_count:{1} 100 83
+-----------finish--------------
+
+
+1e-05 RMSprop kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+
+
+1e-05 Adadelta sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+
+
+1e-05 Adagrad zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+
+
+1e-05 AdamW orthogonal_l2
+-----------start--------------
+error_count:{1} 100 79
+-----------finish--------------
+
+
+1e-05 SGD sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+
+
+1e-05 RMSprop kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+
+
+1e-05 RMSprop orthogonal_ non
+-----------start--------------
+error_count:{1} 100 77
+-----------finish--------------
+
+
+1e-05 AdamW kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+
+
+1e-05 RMSprop kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+
+
+1e-05 Adagrad kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+
+1e-05 Adam ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 RMSprop sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 93
+-----------finish--------------
+1e-05 Adadelta orthogonal_ non
+-----------start--------------
+error_count:{1} 100 80
+-----------finish--------------
+1e-05 AdamW zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 73
+-----------finish--------------
+1e-05 Adam kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adadelta zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 SGD orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 75
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 RMSprop orthogonal_ l2
+-----------start--------------
+error_count:{1} 100 70
+-----------finish--------------
+1e-05 Adam kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adam kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adadelta sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 79
+-----------finish--------------
+1e-05 AdamW ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adam kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 Adagrad zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 94
+-----------finish--------------
+1e-05 Adam kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 SGD zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 RMSprop orthogonal_ non
+-----------start--------------
+error_count:{1} 100 76
+-----------finish--------------
+1e-05 SGD zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 AdamW ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adadelta kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adam kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 Adam zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 75
+-----------finish--------------
+1e-05 Adagrad ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 SGD orthogonal_ non
+-----------start--------------
+error_count:{1} 100 74
+-----------finish--------------
+1e-05 SGD kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 94
+-----------finish--------------
+1e-05 Adadelta ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adadelta zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 RMSprop zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 RMSprop zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adam zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 Adagrad sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 RMSprop orthogonal_ non
+-----------start--------------
+error_count:{1} 100 72
+-----------finish--------------
+1e-05 AdamW orthogonal_ l2
+-----------start--------------
+error_count:{1} 100 81
+-----------finish--------------
+1e-05 Adam sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 AdamW sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 AdamW ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adam kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 93
+-----------finish--------------
+1e-05 AdamW kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 Adam zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 93
+-----------finish--------------
+1e-05 Adam sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 78
+-----------finish--------------
+1e-05 SGD ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adadelta zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 AdamW sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 RMSprop sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 Adagrad ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adadelta orthogonal_ non
+-----------start--------------
+error_count:{1} 100 77
+-----------finish--------------
+1e-05 RMSprop kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adagrad sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 73
+-----------finish--------------
+1e-05 Adadelta orthogonal_ l2
+-----------start--------------
+error_count:{1} 100 78
+-----------finish--------------
+1e-05 SGD kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 AdamW orthogonal_ l2
+-----------start--------------
+error_count:{1} 100 78
+-----------finish--------------
+1e-05 AdamW ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 RMSprop zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 AdamW kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 RMSprop zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 73
+-----------finish--------------
+1e-05 RMSprop ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 Adagrad zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 AdamW orthogonal_ non
+-----------start--------------
+error_count:{1} 100 79
+-----------finish--------------
+1e-05 RMSprop sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 Adadelta orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 77
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 SGD zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 Adam kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 SGD zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adadelta orthogonal_ non
+-----------start--------------
+error_count:{1} 100 79
+-----------finish--------------
+1e-05 RMSprop zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adam zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 72
+-----------finish--------------
+1e-05 Adadelta sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 94
+-----------finish--------------
+1e-05 SGD orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 74
+-----------finish--------------
+1e-05 AdamW zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 99
+-----------finish--------------
+1e-05 Adam sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop orthogonal_ non
+-----------start--------------
+error_count:{1} 100 78
+-----------finish--------------
+1e-05 AdamW sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adam ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adam kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adam zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adam sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 76
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 Adadelta sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 Adagrad zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adadelta ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 RMSprop sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adam zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 SGD kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 SGD zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 77
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adagrad sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 94
+-----------finish--------------
+1e-05 AdamW zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 94
+-----------finish--------------
+1e-05 SGD orthogonal_ non
+-----------start--------------
+error_count:{1} 100 74
+-----------finish--------------
+1e-05 Adadelta orthogonal_ non
+-----------start--------------
+error_count:{1} 100 79
+-----------finish--------------
+1e-05 AdamW sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop sparse_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam orthogonal_ non
+-----------start--------------
+error_count:{1} 100 75
+-----------finish--------------
+1e-05 Adam orthogonal_ non
+-----------start--------------
+error_count:{1} 100 77
+-----------finish--------------
+1e-05 Adam kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 AdamW kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adam ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad zeros_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad orthogonal_ non
+-----------start--------------
+error_count:{1} 100 68
+-----------finish--------------
+1e-05 RMSprop ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 Adagrad ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 SGD kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 96
+-----------finish--------------
+1e-05 SGD sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 AdamW zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 RMSprop sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad kaiming_normal_ l2
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l2
+-----------start--------------
+error_count:{1} 100 80
+-----------finish--------------
+1e-05 Adagrad zeros_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adam ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad orthogonal_ non
+-----------start--------------
+error_count:{1} 100 79
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 80
+-----------finish--------------
+1e-05 AdamW sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adagrad sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW orthogonal_ non
+-----------start--------------
+error_count:{1} 100 77
+-----------finish--------------
+1e-05 SGD kaiming_uniform_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adadelta zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD orthogonal_ non
+-----------start--------------
+error_count:{1} 100 74
+-----------finish--------------
+1e-05 AdamW orthogonal_ non
+-----------start--------------
+error_count:{1} 100 73
+-----------finish--------------
+1e-05 SGD sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW orthogonal_ l2
+-----------start--------------
+error_count:{1} 100 81
+-----------finish--------------
+1e-05 Adagrad kaiming_uniform_ l1
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 SGD ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 RMSprop ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 AdamW ones_ l1
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adadelta sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adam orthogonal_ non
+-----------start--------------
+error_count:{1} 100 72
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ non
+-----------start--------------
+error_count:{1} 100 97
+-----------finish--------------
+1e-05 Adadelta kaiming_normal_ l1
+-----------start--------------
+error_count:{1} 100 98
+-----------finish--------------
+1e-05 Adam ones_ l2
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
+1e-05 Adagrad orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 85
+-----------finish--------------
+1e-05 Adadelta kaiming_uniform_ l2
+-----------start--------------
+error_count:{1} 100 95
+-----------finish--------------
+1e-05 AdamW sparse_ l2
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 Adadelta sparse_ l1
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 SGD zeros_ non
+-----------start--------------
+error_count:{1} 100 0
+-----------finish--------------
+1e-05 AdamW orthogonal_ l1
+-----------start--------------
+error_count:{1} 100 74
+-----------finish--------------
+1e-05 SGD ones_ non
+-----------start--------------
+error_count:{1} 100 100
+-----------finish--------------
