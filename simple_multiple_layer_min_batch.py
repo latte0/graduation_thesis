@@ -12,25 +12,23 @@ import math
 import numpy as np
 
 
-AVE = 3
-LR = 0.01
+AVE = 1
+STEP = 200
+MIN_BATCH = 500
 
-STEP = 2000
 
 show_activation_kernel = False
 
+LR = 0.01
 
 #classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
 select_data="mnist"
-CALC_SIZE = 0.02
-
-#mnist = 0.02 = 36個
 
 #classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
 optim_method="SGD"
 
 #classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'xavier_uniform', 'kaiming_uniform_', 'dirac_', 'zeros_', 'ones_']
-init_method = 'xavier_uniform'
+init_method = 'kaiming_normal_'
 
 #classes = ['non', 'l1', 'l2']
 reg_method = 'non'
@@ -187,28 +185,29 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
     acc_list=[]
     error_count=0
     for i in range(0,AVE):
+        neural_network.set_test(True)
 
         for j in range(STEP):
 
             data_len = len(x)
+            min_batch = MIN_BATCH
 
-            net_optimizer.zero_grad()
+            for min_batch_range in range(int(data_len/min_batch)-1):
+                start = min_batch_range * min_batch
+                end = min_batch_range * min_batch + min_batch
+                net_optimizer.zero_grad()
 
-            output = neural_network(x)
-            loss = criterion(output, y)
-            loss.backward()
-            
-            #test_output = neural_network(test_input_x_torch)
-            #test_loss = criterion(output, y)
-            #loss_list.append(test_loss.item())
-            
-            net_optimizer.step()
-            #if j > STEP/100:
-            loss_list.append(loss.item())
-            #print(loss)
-            if(name == "kernel"):
-                if j % 1 == 0:
-                    print(j)
+                neural_network.set_min_batch(start, end)
+                output = neural_network(x[start: end])
+                loss = criterion(output, y[start: end])
+                loss.backward()
+                net_optimizer.step()
+                #if j > STEP/100:
+                loss_list.append(loss.item())
+                #print(loss)
+                if(name == "kernel"):
+                    if j % 1 == 0:
+                        print(j)
             
 
             
@@ -225,7 +224,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
                 plt.cla()
             
 
-        neural_network.set_test(False)
+        neural_network.set_test(True)
         outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
         if DATA_TYPE=="label":
             _, predicted = torch.max(outputs.data, 1)
@@ -233,7 +232,6 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             predicted = outputs.data
         y_predicted = predicted.numpy()
 
-        print(y_predicted)
         if DATA_TYPE=="label":
             y_true = np.argmax(y_test, axis=1)
             accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
@@ -266,6 +264,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             net_optimizer = create_optim(neural_network)
             #neural_network.apply(init_weights)
             loss_list = []
+            acc_list=[]
 
 
     try:
@@ -311,6 +310,9 @@ class Net(nn.Module):
         self.test = False
         self.middle = False
         self.calc = False
+        self.use_min_batch = False
+        self.min_batch_start = 0
+        self.min_batch_end = 0
         # バンド幅も推定する
         self.h = nn.Parameter(torch.tensor(1.5, requires_grad=True))
         self.h_middle = torch.tensor(1.0)
@@ -326,7 +328,11 @@ class Net(nn.Module):
         result = []
         # print("h")
         # print(self.h)
-        for j, x_j in enumerate(self.calc_X):
+        train_X = self.train_X
+        if self.use_min_batch:
+            train_X = self.train_X[self.min_batch_start: self.min_batch_end]
+
+        for j, x_j in enumerate(train_X):
 
             Xw = self.fc2(F.relu(self.fc1(x_j)))
             tmp = gauss((Xw - Zw) / self.h)
@@ -342,7 +348,11 @@ class Net(nn.Module):
         numerator = 0
         denominator = 0
         result = []
-        for j, x_j in enumerate(self.calc_X):
+        calc_X = self.calc_X
+        if self.use_min_batch:
+            calc_X = self.calc_X[self.min_batch_start: self.min_batch_end]
+
+        for j, x_j in enumerate(calc_X):
 
             Xw = self.fc2(F.relu(self.fc1(x_j)))
             tmp = gauss((Xw - Zw) / self.h)
@@ -362,6 +372,14 @@ class Net(nn.Module):
     def set_calc(self, calc):
         self.calc = calc
     
+    def set_min_batch(self, start, end):
+        self.use_min_batch = True
+        self.min_batch_start = start
+        self.min_batch_end = end
+    
+    def use_min_batch(self, use_min_batch):
+        self.use_min_batch = use_min_batch
+
 
     def forward(self, x):
 
@@ -370,7 +388,10 @@ class Net(nn.Module):
 
         # reluかkernel切り分け
         if self.settings["activation"] == "kernel":
-            y = self.kernel_output(xw)
+            if(not self.test):
+                y = self.kernel(xw)
+            if(self.test):
+                y = self.kernel_output(xw)
         elif self.settings["activation"] == "sigmoid":
             y = self.sigmoid(xw)
         elif self.settings["activation"] == "relu":
@@ -391,10 +412,12 @@ class Net(nn.Module):
 if DATA_TYPE=="label":
     y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
     y[np.arange(len(iris.target)), iris.target] = 1
+    print(y)
 
 if DATA_TYPE=="reg":
     y = np.zeros((len(iris.target), DATA_OUTPUT_LENGTH), dtype=int)
     for i, x in enumerate(iris.target):
+        print(x)
         if DATA_OUTPUT_LENGTH == 1:
             y[i] = [x]
         else:
@@ -404,7 +427,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     iris.data, y, test_size=0.2)
     
 _, X_calc, _, y_calc = train_test_split(
-    iris.data, y, test_size=CALC_SIZE)
+    iris.data, y, test_size=0.0)
 
     
 print(len(X_calc))
@@ -472,7 +495,7 @@ ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kern
 
 ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = train(net_sigmoid, optimizer_sigmoid, "sigmoid", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
 ave_relu, acc_list_relu, loss_list_relu = train(net_relu, optimizer_relu, "relu", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
-#ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
+ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
 ave_mish, acc_list_mish, loss_list_mish = train(net_mish, optimizer_mish, "mish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
 ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "swish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
 
@@ -482,7 +505,7 @@ ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "
 
 
 plt.plot( loss_list_kernel, label='kernel')
-#plt.plot( loss_list_linear, label='linear')
+plt.plot( loss_list_linear, label='linear')
 plt.plot( loss_list_relu, label='relu')
 plt.plot( loss_list_mish, label='mish')
 plt.plot( loss_list_swish, label='swish')

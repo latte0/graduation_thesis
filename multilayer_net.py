@@ -12,12 +12,12 @@ import math
 import numpy as np
 
 
-AVE = 1
-LR = 0.000001
-STEP = 200
+AVE = 3
+LR = 0.01
+STEP = 2000
 
 
-select_data="linnerud"
+select_data="mnist"
 
 if select_data=="wine":
     DATA_TYPE = "label"
@@ -266,9 +266,6 @@ class Net(nn.Module):
 
         # reluかkernel切り分け
         if self.settings["activation"] == "kernel":
-            if(not self.test):
-                y = self.kernel(xw)
-            if(self.test):
                 y = self.kernel_output(xw)
         elif self.settings["activation"] == "sigmoid":
             y = self.sigmoid(xw)
@@ -309,7 +306,7 @@ print(len(X_test))
 #0.2
 
 _, X_calc, _, y_calc = train_test_split(
-    iris.data, y, test_size=0.40)
+    iris.data, y, test_size=0.02)
 
 #0.04
 print(len(X_calc))
@@ -390,7 +387,7 @@ def calc_with_net(neural_network, net_optimizer, name):
 
 
 
-        neural_network.set_test(True)
+        neural_network.set_test(False)
         outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
         if DATA_TYPE=="label":
             _, predicted = torch.max(outputs.data, 1)
