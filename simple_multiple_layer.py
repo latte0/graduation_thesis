@@ -13,12 +13,13 @@ import numpy as np
 
 
 AVE = 1
-STEP = 20
+STEP = 200
+MIN_BATCH = 200
 
 
 show_activation_kernel = False
 
-LR = 0.00001
+LR = 0.0000001
 
 #classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
 select_data="boston"
@@ -187,17 +188,27 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
         neural_network.set_test(False)
 
         for j in range(STEP):
-            net_optimizer.zero_grad()
-            output = neural_network(x)
-            loss = criterion(output, y)
-            loss.backward()
-            net_optimizer.step()
-            #if j > STEP/100:
-            loss_list.append(loss.item())
-            #print(loss)
-            if(name == "kernel"):
-                if j % 1 == 0:
-                    print(j)
+
+            data_len = len(x)
+            min_batch = MIN_BATCH
+
+            for min_batch_range in range(math.floor(data_len/min_batch)):
+                start = min_batch_range * min_batch
+                end = min_batch_range * min_batch + min_batch
+                net_optimizer.zero_grad()
+
+                neural_network.set_min_batch(start, end)
+                output = neural_network(x[start: end])
+                loss = criterion(output, y[start: end])
+                loss.backward()
+                net_optimizer.step()
+                #if j > STEP/100:
+                loss_list.append(loss.item())
+                #print(loss)
+                if(name == "kernel"):
+                    if j % 1 == 0:
+                        print(j)
+            
 
             
             if(j % 1 == 0 and name == "kernel" and show_activation_kernel):
@@ -303,6 +314,9 @@ class Net(nn.Module):
         self.test = False
         self.middle = False
         self.calc = False
+        self.use_min_batch = False
+        self.min_batch_start = 0
+        self.min_batch_end = 0
         # バンド幅も推定する
         self.h = nn.Parameter(torch.tensor(1.5, requires_grad=True))
         self.h_middle = torch.tensor(1.0)
@@ -318,7 +332,11 @@ class Net(nn.Module):
         result = []
         # print("h")
         # print(self.h)
-        for j, x_j in enumerate(self.train_X):
+        train_X = self.train_X
+        if self.use_min_batch:
+            train_X = self.train_X[self.min_batch_start: self.min_batch_end]
+
+        for j, x_j in enumerate(train_X):
 
             Xw = self.fc2(F.relu(self.fc1(x_j)))
             tmp = gauss((Xw - Zw) / self.h)
@@ -353,6 +371,15 @@ class Net(nn.Module):
 
     def set_calc(self, calc):
         self.calc = calc
+    
+    def set_min_batch(self, start, end):
+        self.use_min_batch = True
+        self.min_batch_start = start
+        self.min_batch_end = end
+    
+    def use_min_batch(self, use_min_batch):
+        self.use_min_batch = use_min_batch
+
 
     def forward(self, x):
 
@@ -385,12 +412,10 @@ class Net(nn.Module):
 if DATA_TYPE=="label":
     y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
     y[np.arange(len(iris.target)), iris.target] = 1
-    print(y)
 
 if DATA_TYPE=="reg":
     y = np.zeros((len(iris.target), DATA_OUTPUT_LENGTH), dtype=int)
     for i, x in enumerate(iris.target):
-        print(x)
         if DATA_OUTPUT_LENGTH == 1:
             y[i] = [x]
         else:
