@@ -13,24 +13,24 @@ import numpy as np
 
 
 AVE = 3
-LR = 0.01
+LR = 0.0001
 
-STEP = 2000
+STEP = 10000
 
 show_activation_kernel = False
 
 
 #classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
-select_data="mnist"
-CALC_SIZE = 0.02
+select_data="wine"
+CALC_SIZE = 0.2
 
 #mnist = 0.02 = 36個
 
 #classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
 optim_method="SGD"
 
-#classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'xavier_uniform', 'kaiming_uniform_', 'dirac_', 'zeros_', 'ones_']
-init_method = 'xavier_uniform'
+#classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'kaiming_uniform_', 'dirac_', 'zeros_', 'ones_']
+init_method = 'kaiming_uniform_'
 
 #classes = ['non', 'l1', 'l2']
 reg_method = 'non'
@@ -113,11 +113,11 @@ def init_weights(m):
         if init_method == 'sparse_':
             torch.nn.init.sparse_(m.weight, sparsity=1)
         if init_method == 'kaiming_normal_':
-            torch.nn.init.kaiming_uniform_(m.weight, mode='fan_in', nonlinearity='relu')
+            torch.nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='relu')
         if init_method == 'xavier_uniform':
-            torch.nn.init.xavier_uniform(m.weight, gain=nn.init.calculate_gain('relu'))
+            torch.nn.init.xavier_uniform(m.weight)
         if init_method == 'kaiming_uniform_':
-            torch.nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            torch.nn.init.kaiming_uniform_(m.weight, a=math.sqrt(5))
         if init_method == 'dirac_':
             torch.nn.init.dirac_(m.weight)
         if init_method == 'zeros_':
@@ -127,16 +127,6 @@ def init_weights(m):
 
 
         #m.bias.data.fill_(0.01)
-
-def set_reg(model):
-    if reg_method == 'l1':
-        l1_penalty = torch.nn.L1Loss(size_average=False)
-        reg_loss = 0
-        for param in model.parameters():
-            reg_loss += l1_penalty(param)
-            loss += lambda_param * reg_loss
-    return loss
-
 
 
 def gauss(x, a=1, mu=0, sigma=1):
@@ -181,7 +171,6 @@ def mish(x):
 def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc ):
     print("-----------start--------------")
     print(name)
-    #neural_network.apply(init_weights)
 
     loss_list = []
     acc_list=[]
@@ -198,13 +187,13 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             loss = criterion(output, y)
             loss.backward()
             
-            #test_output = neural_network(test_input_x_torch)
-            #test_loss = criterion(output, y)
-            #loss_list.append(test_loss.item())
+            test_output = neural_network(torch.from_numpy(X_test).float())
+            test_loss = criterion(test_output, torch.from_numpy(y_test).float())
+            loss_list.append(test_loss.item())
             
             net_optimizer.step()
             #if j > STEP/100:
-            loss_list.append(loss.item())
+            #loss_list.append(loss.item())
             #print(loss)
             if(name == "kernel"):
                 if j % 1 == 0:
@@ -233,7 +222,6 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             predicted = outputs.data
         y_predicted = predicted.numpy()
 
-        print(y_predicted)
         if DATA_TYPE=="label":
             y_true = np.argmax(y_test, axis=1)
             accuracy = (int)(100 * np.sum(y_predicted == y_true) / len(y_predicted))
@@ -247,9 +235,8 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
                 error_count+=1     
                 neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
                 net_optimizer = create_optim(neural_network)
-                #neural_network.apply(init_weights)
+
                 loss_list = []
-                acc_list=[]
                 continue #your handling code
                     
 
@@ -264,7 +251,6 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
         if (i != AVE-1 ): 
             neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
             net_optimizer = create_optim(neural_network)
-            #neural_network.apply(init_weights)
             loss_list = []
 
 
@@ -317,6 +303,7 @@ class Net(nn.Module):
 
         self.last_layer_result = []
         self.sigmoid = nn.Sigmoid()
+        self.tanh = nn.Tanh()
 
     # kernel推定量の計算
 
@@ -373,6 +360,8 @@ class Net(nn.Module):
             y = self.kernel_output(xw)
         elif self.settings["activation"] == "sigmoid":
             y = self.sigmoid(xw)
+        elif self.settings["activation"] == "tanh":
+            y = self.tanh(xw)
         elif self.settings["activation"] == "relu":
             y = F.relu(xw)
         elif self.settings["activation"] == "linear":
@@ -423,6 +412,7 @@ y_calc = Variable(torch.from_numpy(y_calc).float())
 # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
 net_kernel = Net(y, y_calc, x_static, x_static_calc, {"activation": "kernel"})
 net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
+net_tanh = Net(y, y_calc, x_static, x_static_calc, {"activation": "tanh"})
 net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
 net_linear = Net(y, y_calc, x_static, x_static_calc, {"activation": "linear"})
 net_mish = Net(y, y_calc, x_static, x_static_calc, {"activation": "mish"})
@@ -432,6 +422,7 @@ net_swish = Net(y, y_calc, x_static, x_static_calc, {"activation": "swish"})
 
 optimizer_kernel = create_optim(net_kernel)
 optimizer_sigmoid = create_optim(net_sigmoid)
+optimizer_tanh = create_optim(net_tanh)
 optimizer_relu = create_optim(net_relu)
 optimizer_linear = create_optim(net_linear)
 optimizer_mish = create_optim(net_mish)
@@ -471,6 +462,7 @@ plt.ioff()
 ave_kernel, acc_list_kernel, loss_list_kernel = train(net_kernel, optimizer_kernel, "kernel", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
 
 ave_sigmoid, acc_list_sigmoid, loss_list_sigmoid = train(net_sigmoid, optimizer_sigmoid, "sigmoid", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
+ave_tanh, acc_list_tanh, loss_list_tanh = train(net_tanh, optimizer_tanh, "tanh", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
 ave_relu, acc_list_relu, loss_list_relu = train(net_relu, optimizer_relu, "relu", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
 #ave_linear, acc_list_linear, loss_list_linear = train(net_linear, optimizer_linear, "linear", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc, )
 ave_mish, acc_list_mish, loss_list_mish = train(net_mish, optimizer_mish, "mish", X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc,)
@@ -481,11 +473,13 @@ ave_swish, acc_list_swish, loss_list_swish = train(net_swish, optimizer_swish, "
 
 
 
-plt.plot( loss_list_kernel, label='kernel')
+plt.plot( loss_list_kernel[100:], label='kernel')
 #plt.plot( loss_list_linear, label='linear')
-plt.plot( loss_list_relu, label='relu')
-plt.plot( loss_list_mish, label='mish')
-plt.plot( loss_list_swish, label='swish')
+plt.plot( loss_list_sigmoid[100:], label='sigmoid')
+plt.plot( loss_list_tanh[100:], label='tanh')
+plt.plot( loss_list_relu[100:], label='relu')
+plt.plot( loss_list_mish[100:], label='mish')
+plt.plot( loss_list_swish[100:], label='swish')
 plt.xlabel('step')  # x軸のラベルづけ
 plt.ylabel('loss')  # y軸のラベルづけ
 plt.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0, fontsize=18)

@@ -19,18 +19,18 @@ STEP = 5
 show_activation_kernel = False
 
 #classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
-select_data="linnerud"
+select_data="wine"
 
 
 
 
-LR_classes = [0.000001, 0.00001, 0.0001, 0.001, 0.01]
+LR_classes = [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1]
 LR = 0.00001
 
-optim_method_classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
+optim_method_classes = ['SGD', 'Adagrad', 'RMSprop', 'Adam']
 optim_method="Adam"
 
-init_method_classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'kaiming_uniform_', 'zeros_', 'ones_']
+init_method_classes = ['xavier_uniform', 'kaiming_uniform_']
 init_method = 'kaiming_uniform_'
 
 reg_method_classes = ['non', 'l1', 'l2']
@@ -114,9 +114,11 @@ def init_weights(m):
         if init_method == 'sparse_':
             torch.nn.init.sparse_(m.weight, sparsity=1)
         if init_method == 'kaiming_normal_':
-            torch.nn.init.kaiming_uniform_(m.weight, mode='fan_in', nonlinearity='relu')
+            torch.nn.init.kaiming_normal_(m.weight)
         if init_method == 'kaiming_uniform_':
-            torch.nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            torch.nn.init.kaiming_uniform_(m.weight)
+        if init_method == 'xavier_uniform':
+            torch.nn.init.xavier_uniform(m.weight)
         if init_method == 'zeros_':
             torch.nn.init.zeros_(m.weight)
         if init_method == 'ones_':
@@ -224,7 +226,6 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
                 net_optimizer = create_optim(neural_network)
                 neural_network.apply(init_weights)
                 loss_list = []
-                acc_list=[]
                 continue #your handling code
                     
 
@@ -235,7 +236,6 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             net_optimizer = create_optim(neural_network)
             neural_network.apply(init_weights)
             loss_list = []
-            acc_list=[]
 
 
     try:
@@ -247,7 +247,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
 
 
 
-    print("AVE:{0}, error_count:{1}", AVE, error_count)
+    print("AVE:{0}, error_count:{1}, accuracy_average:{2}", AVE, error_count, ave)
     print("-----------finish--------------")
     
     return ave, acc_list, loss_list
@@ -376,7 +376,8 @@ X_train, X_test, y_train, y_test = train_test_split(
     iris.data, y, test_size=0.2)
     
 _, X_calc, _, y_calc = train_test_split(
-    iris.data, y, test_size=0.40)
+    iris.data, y, test_size=0.15
+    )
 
     
 print(len(X_calc))
