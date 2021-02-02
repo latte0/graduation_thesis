@@ -13,24 +13,26 @@ import numpy as np
 
 
 AVE = 3
-LR = 0.0001
+LR = 0.01
 
-STEP = 10000
-
+STEP = 1000
+max_norm=0.25
+use_clipping = True
 show_activation_kernel = False
 
 
 #classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
-select_data="wine"
-CALC_SIZE = 0.2
+select_data="boston"
+CALC_SIZE = 0.15
 
+#mnist = 0.02 = 36個
 #mnist = 0.02 = 36個
 
 #classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
 optim_method="SGD"
 
 #classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'kaiming_uniform_', 'dirac_', 'zeros_', 'ones_']
-init_method = 'kaiming_uniform_'
+init_method = 'kaiming_normal_'
 
 #classes = ['non', 'l1', 'l2']
 reg_method = 'non'
@@ -76,12 +78,20 @@ if select_data=="diabetes":
     iris = datasets.load_diabetes()
 
 
-if select_data=="linnerud":
+if select_data=="diabetes":
     DATA_TYPE = "reg"
-    DATA_OUTPUT_LENGTH = 3
-    DATA_MID_LENGTH = 10
-    DATA_INPUT_LENGTH = 3
-    iris = datasets.load_linnerud()
+    DATA_OUTPUT_LENGTH = 1
+    DATA_MID_LENGTH = 20
+    DATA_INPUT_LENGTH = 10
+    iris = datasets.load_diabetes()
+
+
+if select_data=="breast_cancer":
+    DATA_TYPE = "label"
+    DATA_OUTPUT_LENGTH = 2
+    DATA_MID_LENGTH = 20
+    DATA_INPUT_LENGTH = 30
+    iris = datasets.load_breast_cancer()
 
 
 
@@ -89,7 +99,7 @@ def create_optim(model):
     weight_decay=0
 
     if reg_method == 'l2':
-        weight_decay = 0.9
+        weight_decay = 0.01
 
     if optim_method == 'SGD':
         return optim.SGD(model.parameters(), lr=LR, weight_decay=weight_decay )
@@ -187,6 +197,9 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             loss = criterion(output, y)
             loss.backward()
             
+            if use_clipping:
+                nn.utils.clip_grad_norm_(neural_network.parameters(), max_norm)
+            
             test_output = neural_network(torch.from_numpy(X_test).float())
             test_loss = criterion(test_output, torch.from_numpy(y_test).float())
             loss_list.append(test_loss.item())
@@ -230,7 +243,8 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             #print(y_test)
             #print(y_predicted)
             try:
-                accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
+                dif = y_predicted - y_true
+                accuracy = (int)(np.sum(dif * dif) / len(y_predicted))
             except:       
                 error_count+=1     
                 neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})

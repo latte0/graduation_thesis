@@ -12,29 +12,35 @@ import math
 import numpy as np
 import random
 
-AVE = 100
+AVE = 1000
 STEP = 5
 
 
 show_activation_kernel = False
 
 #classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
-select_data="wine"
-
+select_data="boston"
+max_norm = 0.025
 
 
 
 LR_classes = [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1]
 LR = 0.00001
 
-optim_method_classes = ['SGD', 'Adagrad', 'RMSprop', 'Adam']
-optim_method="Adam"
+#optim_method_classes = ['SGD', 'Adagrad', 'RMSprop', 'Adam']
+optim_method_classes = ['SGD']
+optim_method="SGD"
 
-init_method_classes = ['xavier_uniform', 'kaiming_uniform_']
+#init_method_classes = ['xavier_uniform', 'kaiming_uniform_']
+init_method_classes = ['kaiming_uniform_']
 init_method = 'kaiming_uniform_'
 
-reg_method_classes = ['non', 'l1', 'l2']
-reg_method = 'l2'
+#reg_method_classes = ['non', 'l1', 'l2']
+reg_method_classes = ['non']
+reg_method = 'non'
+
+use_clipping_classes = [True, False]
+use_clipping = True
 
 
 if select_data=="wine":
@@ -105,6 +111,8 @@ def create_optim(model):
     if optim_method == 'AdamW':
         return optim.AdamW(model.parameters(), lr=LR, weight_decay=weight_decay )
 
+
+    nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 def init_weights(m):
     
@@ -185,13 +193,16 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
     acc_list=[]
     error_count=0
     for i in range(0,AVE):
-        neural_network.set_test(False)
+        neural_network.set_test(True)
 
         for j in range(STEP):
             net_optimizer.zero_grad()
             output = neural_network(x)
             loss = criterion(output, y)
-            loss.backward()
+            loss.backward()            
+            if use_clipping:
+                nn.utils.clip_grad_norm_(neural_network.parameters(), max_norm)
+            
             net_optimizer.step()
             loss_list.append(loss.item())
             
@@ -219,8 +230,9 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             y_true = y_test
 
             try:
-                accuracy = (int)(np.sum(y_predicted - y_true) / len(y_predicted))
-            except:       
+                dif = y_predicted - y_true
+                accuracy = (int)(np.sum(dif * dif) / len(y_predicted))
+            except:     
                 error_count+=1     
                 neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
                 net_optimizer = create_optim(neural_network)
@@ -407,7 +419,12 @@ while 1:
     #classes = ['non', 'l1', 'l2']
     reg_method = reg_method_classes[random.randrange(len(reg_method_classes))]
 
-    print(LR, optim_method, init_method, reg_method )
+    #classes = [True, False]
+    use_clipping = use_clipping_classes[random.randrange(len(use_clipping_classes))]
+
+
+
+    print(LR, optim_method, init_method, reg_method, use_clipping )
 
 
     # leave one outの計算のため、事前に入力と出力のパラメータをセットしておく
