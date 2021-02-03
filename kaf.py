@@ -56,13 +56,7 @@ reg_method = 'non'
 learning_reate = 0.0001
 
 
-
-
-
-
-
-
-
+# 各データセットに合わせたニューラルネットワークの設定を組む
 if data_set_type=="wine":
     DATA_TYPE = "label"
     DATA_OUTPUT_LENGTH = 3
@@ -117,6 +111,26 @@ if data_set_type=="breast_cancer":
     DATA_MID_LENGTH = 20
     DATA_INPUT_LENGTH = 30
     iris = datasets.load_breast_cancer()
+
+
+
+
+def get_option(show_kaf, use_clipping):
+    argparser = ArgumentParser()
+    argparser.add_argument('-s', '--show_kaf', type=bool,
+                           default=show_kaf,
+                           help='Specify boolean of show_kaf')
+    argparser.add_argument('-c', '--use_clipping', type=bool,
+                           default=use_clipping,
+                           help='Specify boolean of use_clipping')
+    return argparser.parse_args()
+
+
+
+args = get_option(show_kaf, use_clipping)
+show_kaf = args.show_kaf
+use_clipping = args.use_clipping
+
 
 
 
@@ -402,8 +416,6 @@ class Net(nn.Module):
 
 
 # データの用意
-
-
 if DATA_TYPE=="label":
     y = np.zeros((len(iris.target), 1 + iris.target.max()), dtype=int)
     y[np.arange(len(iris.target)), iris.target] = 1
@@ -417,12 +429,16 @@ if DATA_TYPE=="reg":
             y[i] = x
 
 
+
+
+
 X_train, X_test, y_train, y_test = train_test_split(
     iris.data, y, test_size=TEST_RATIO)
     
 # leave one outのために、testからランダムに取り出す。
 X_calc = np.array(random.sample(list(X_test), k=CALC_NUM))
 y_calc = np.array(random.sample(list(y_test), k=CALC_NUM))
+
 
 
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
