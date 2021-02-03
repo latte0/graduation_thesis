@@ -22,7 +22,14 @@
 ## 実行方法
 
 ```
-python kaf.py --use_clipping -c -s
+# 普通に実行
+python kaf.py
+
+# K-AFを表示
+python kaf.py -s
+
+# クリッピングをつける
+python kaf.py -c 
 ```
 
 - -c: クリッピングを用いるかどうか
