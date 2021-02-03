@@ -475,6 +475,7 @@ optimizer_swish = create_optim(net_swish)
 criterion = nn.MSELoss()
 
 
+# -50から50までの値で、K-AFの関数の形状を見る
 test_input_x = np.linspace(-50, 50, 200)
 test_input_x_list = []
 for p in test_input_x:
