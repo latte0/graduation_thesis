@@ -32,6 +32,8 @@ EPOCH_NUM = 1000
 TEST_RATIO = 0.2
 # K-AFに使うデータセット数
 CALC_NUM = 50
+# K-AFのバンド幅の初期値
+BAND_WIDTH = 1.5
 
 
 
@@ -348,10 +350,8 @@ class Net(nn.Module):
 
 
         # バンド幅も推定する(初期値の研究は継続する必要あり。)
-        self.h = nn.Parameter(torch.tensor(1.5, requires_grad=True))
-        self.h_middle = torch.tensor(1.0)
-
-        self.last_layer_result = []
+        self.h = nn.Parameter(torch.tensor(BAND_WIDTH, requires_grad=True))
+        
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
 
@@ -395,7 +395,7 @@ class Net(nn.Module):
         xw = F.relu(self.fc1(x))
         xw = self.fc2(xw)
 
-        # reluかkernel切り分け
+        # 使う活性化関数の切り分け
         if self.settings["activation"] == "kernel":
             # y = self.kernel_output(xw) # 全データ使用の場合
             y = self.kernel_output(xw) # X_calcだけ使用する場合。
