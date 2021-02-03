@@ -1,4 +1,4 @@
-# graduation_thesis
+# 卒論プロジェクト
 
 卒業論文で開発したソフトウェアです。
 
@@ -13,5 +13,5 @@
 python kaf.py --use_clipping=false --show_kaf=false
 ```
 
-- use_clipping...クリッピングを用いるかどうか
-- show_kaf...K-AFの形状を表示するかどうか。（表示すると遅くなる。)
+- use_clipping: クリッピングを用いるかどうか
+- show_kaf: K-AFの形状を表示するかどうか。（表示すると遅くなる。)
