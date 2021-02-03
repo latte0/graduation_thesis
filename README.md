@@ -28,7 +28,7 @@ python kaf.py
 # K-AFを表示
 python kaf.py -s
 
-# クリッピングをつける
+# 勾配をクリッピングする
 python kaf.py -c 
 ```
 
