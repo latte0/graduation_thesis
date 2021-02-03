@@ -10,35 +10,60 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+import random
+from argparse import ArgumentParser
 
 
-AVE = 1
-LR = 0.0001
-
-STEP = 1000
+# クリッピングするかどうか
+use_clipping = False
+# clippingの上限値
 max_norm=0.25
-use_clipping = True
-show_activation_kernel = False
+# K-AFの様子を見るかどうか
+show_kaf = False
 
 
-#classes = ['wine', 'iris', 'mnist', 'boston', 'diabetes', 'linnerud']
-select_data="boston"
-CALC_SIZE = 0.15
 
-#mnist = 0.02 = 36個
-#mnist = 0.02 = 36個
 
-#classes = ['SGD', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam', 'AdamW']
-optim_method="SGD"
+#実験の回数
+EXP_NUM = 1
+# epoch数
+EPOCH_NUM = 1000
+# データセットのうちtestの割合
+TEST_RATIO = 0.2
+# K-AFに使うデータセット数
+CALC_NUM = 50
 
-#classes = ['orthogonal_', 'sparse_', 'kaiming_normal_', 'kaiming_uniform_', 'dirac_', 'zeros_', 'ones_']
-init_method = 'kaiming_normal_'
 
+
+
+#使用するデータセット
+#classes = ['wine', 'iris', 'digits', 'boston',']
+data_set_type="digits"
+
+# Optimizer ( 最適化のアルゴリズム )
+#classes = ['SGD', 'Adagrad', 'RMSprop', 'Adam']
+optim_method="Adam"
+
+# Initializer(初期化手法)
+#classes = ['kaiming_uniform_', 'xavier_uniform']
+init_method = 'kaiming_uniform_'
+
+# レギュラライザー(正則化)
 #classes = ['non', 'l1', 'l2']
 reg_method = 'non'
 
+# 学習率
+learning_reate = 0.0001
 
-if select_data=="wine":
+
+
+
+
+
+
+
+
+if data_set_type=="wine":
     DATA_TYPE = "label"
     DATA_OUTPUT_LENGTH = 3
     DATA_MID_LENGTH = 40
@@ -46,7 +71,7 @@ if select_data=="wine":
     iris = datasets.load_wine()
 
 
-if select_data=="iris":
+if data_set_type=="iris":
     DATA_TYPE = "label"
     DATA_OUTPUT_LENGTH = 3
     DATA_MID_LENGTH = 3
@@ -54,7 +79,7 @@ if select_data=="iris":
     iris = datasets.load_iris()
 
 
-if select_data=="mnist":
+if data_set_type=="digits":
     DATA_TYPE = "label"
     DATA_OUTPUT_LENGTH = 10
     DATA_MID_LENGTH = 100
@@ -62,7 +87,7 @@ if select_data=="mnist":
     iris = datasets.load_digits()
     
 
-if select_data=="boston":
+if data_set_type=="boston":
     DATA_TYPE = "reg"
     DATA_OUTPUT_LENGTH = 1
     DATA_MID_LENGTH = 20
@@ -70,7 +95,7 @@ if select_data=="boston":
     iris = datasets.load_boston()
 
 
-if select_data=="diabetes":
+if data_set_type=="diabetes":
     DATA_TYPE = "reg"
     DATA_OUTPUT_LENGTH = 1
     DATA_MID_LENGTH = 20
@@ -78,7 +103,7 @@ if select_data=="diabetes":
     iris = datasets.load_diabetes()
 
 
-if select_data=="diabetes":
+if data_set_type=="diabetes":
     DATA_TYPE = "reg"
     DATA_OUTPUT_LENGTH = 1
     DATA_MID_LENGTH = 20
@@ -86,7 +111,7 @@ if select_data=="diabetes":
     iris = datasets.load_diabetes()
 
 
-if select_data=="breast_cancer":
+if data_set_type=="breast_cancer":
     DATA_TYPE = "label"
     DATA_OUTPUT_LENGTH = 2
     DATA_MID_LENGTH = 20
@@ -102,17 +127,17 @@ def create_optim(model):
         weight_decay = 0.01
 
     if optim_method == 'SGD':
-        return optim.SGD(model.parameters(), lr=LR, weight_decay=weight_decay )
+        return optim.SGD(model.parameters(), lr=learning_reate, weight_decay=weight_decay )
     if optim_method == 'Adagrad':
-        return optim.Adagrad(model.parameters(), lr=LR, weight_decay=weight_decay )
+        return optim.Adagrad(model.parameters(), lr=learning_reate, weight_decay=weight_decay )
     if optim_method == 'RMSprop':
-        return optim.RMSprop(model.parameters(), lr=LR, weight_decay=weight_decay )
+        return optim.RMSprop(model.parameters(), lr=learning_reate, weight_decay=weight_decay )
     if optim_method == 'Adadelta':
-        return optim.Adadelta(model.parameters(), lr=LR, weight_decay=weight_decay )
+        return optim.Adadelta(model.parameters(), lr=learning_reate, weight_decay=weight_decay )
     if optim_method == 'Adam':
-        return optim.Adam(model.parameters(), lr=LR, weight_decay=weight_decay )
+        return optim.Adam(model.parameters(), lr=learning_reate, weight_decay=weight_decay )
     if optim_method == 'AdamW':
-        return optim.AdamW(model.parameters(), lr=LR, weight_decay=weight_decay )
+        return optim.AdamW(model.parameters(), lr=learning_reate, weight_decay=weight_decay )
 
 
 def init_weights(m):
@@ -181,13 +206,15 @@ def mish(x):
 def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test, y, y_calc, x_static, x_static_calc ):
     print("-----------start--------------")
     print(name)
+    neural_network.apply(init_weights)
 
     loss_list = []
     acc_list=[]
     error_count=0
-    for i in range(0,AVE):
 
-        for j in range(STEP):
+    for i in range(0,EXP_NUM):
+
+        for j in range(EPOCH_NUM):
 
             data_len = len(x)
 
@@ -205,16 +232,8 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             loss_list.append(test_loss.item())
             
             net_optimizer.step()
-            #if j > STEP/100:
-            #loss_list.append(loss.item())
-            #print(loss)
-            if(name == "kernel"):
-                if j % 1 == 0:
-                    print(j)
-            
 
-            
-            if(j % 1 == 0 and name == "kernel" and show_activation_kernel):
+            if(j % 1 == 0 and name == "kernel" and show_kaf):
                 test_input_y_torch = neural_network.kernel_output(test_input_x_torch)
                 test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
 
@@ -226,9 +245,8 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
                 plt.pause(0.00000001)
                 plt.cla()
             
-
-        neural_network.set_test(False)
         outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
+
         if DATA_TYPE=="label":
             _, predicted = torch.max(outputs.data, 1)
         if DATA_TYPE=="reg":
@@ -259,13 +277,17 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
         if DATA_TYPE=="label":
             print('accuracy: {0}%'.format(accuracy))
         if DATA_TYPE=="reg":
-            print('accumulate: {0}'.format(accuracy))
+            print('accumulate: {0}%'.format(accuracy))
 
         acc_list.append(accuracy)
 
-        if (i != AVE-1 ): 
+        
+        # ネットワーク初期化
+        if (i != EXP_NUM-1 ): 
             neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
             net_optimizer = create_optim(neural_network)
+            neural_network.apply(init_weights)
+            # ValidationLossのログは最後のやつだけ表示する。
             loss_list = []
 
 
@@ -277,8 +299,8 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             
 
 
-    print("average{0}", ave)
-    print("AVE:{0}, error_count:{1}", AVE, error_count)
+    print('average(Accuracyの平均): {0}%'.format(ave))
+    print('EXP_NUM(実験回数): {0}, error_count(発散の回数):{1}%'.format(EXP_NUM, error_count))
     print("-----------finish--------------")
     
     return ave, acc_list, loss_list
@@ -304,15 +326,14 @@ class Net(nn.Module):
         # leave_ont_outのために事前に入力と出力をセットしておく
         self.Y = Y
         self.calc_Y = calc_Y
-        self.M = None
-        self.calc_M = None
         self.train_X = X
         self.calc_X = calc_X
         self.settings = settings
-        self.test = False
-        self.middle = False
-        self.calc = False
-        # バンド幅も推定する
+
+
+
+
+        # バンド幅も推定する(初期値の研究は継続する必要あり。)
         self.h = nn.Parameter(torch.tensor(1.5, requires_grad=True))
         self.h_middle = torch.tensor(1.0)
 
@@ -320,19 +341,17 @@ class Net(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
 
-    # kernel推定量の計算
-
+    # kernel推定量の計算(全データ使用する場合)
     def kernel(self, Zw):
         numerator = 0
         denominator = 0
         result = []
-        # print("h")
-        # print(self.h)
         for j, x_j in enumerate(self.calc_X):
 
             Xw = self.fc2(F.relu(self.fc1(x_j)))
             tmp = gauss((Xw - Zw) / self.h)
 
+            # leave_one_out
             tmp[j] = 0
             denominator += tmp
             numerator += tmp * self.Y[j]
@@ -340,6 +359,9 @@ class Net(nn.Module):
         g = numerator/denominator
         return g
 
+
+
+    # kernel推定量の計算(X_calcだけしか使わない場合、testからデータを取ることで、leave_one_outと同様のことを実現)
     def kernel_output(self, Zw):
         numerator = 0
         denominator = 0
@@ -354,17 +376,6 @@ class Net(nn.Module):
         g = numerator/denominator
         return g
 
-
-    def set_test(self, test):
-        self.test = test
-
-    def set_middle(self, middle):
-        self.middle = middle
-
-    def set_calc(self, calc):
-        self.calc = calc
-    
-
     def forward(self, x):
 
         xw = F.relu(self.fc1(x))
@@ -372,7 +383,8 @@ class Net(nn.Module):
 
         # reluかkernel切り分け
         if self.settings["activation"] == "kernel":
-            y = self.kernel_output(xw)
+            # y = self.kernel_output(xw) # 全データ使用の場合
+            y = self.kernel_output(xw) # X_calcだけ使用する場合。
         elif self.settings["activation"] == "sigmoid":
             y = self.sigmoid(xw)
         elif self.settings["activation"] == "tanh":
@@ -404,14 +416,14 @@ if DATA_TYPE=="reg":
         else:
             y[i] = x
 
-X_train, X_test, y_train, y_test = train_test_split(
-    iris.data, y, test_size=0.2)
-    
-_, X_calc, _, y_calc = train_test_split(
-    iris.data, y, test_size=CALC_SIZE)
 
+X_train, X_test, y_train, y_test = train_test_split(
+    iris.data, y, test_size=TEST_RATIO)
     
-print(len(X_calc))
+# leave one outのために、testからランダムに取り出す。
+X_calc = np.array(random.sample(list(X_test), k=CALC_NUM))
+y_calc = np.array(random.sample(list(y_test), k=CALC_NUM))
+
 
 x = Variable(torch.from_numpy(X_train).float(), requires_grad=True)
 
@@ -429,7 +441,7 @@ net_kernel = Net(y, y_calc, x_static, x_static_calc, {"activation": "kernel"})
 net_sigmoid = Net(y, y_calc, x_static, x_static_calc, {"activation": "sigmoid"})
 net_tanh = Net(y, y_calc, x_static, x_static_calc, {"activation": "tanh"})
 net_relu = Net(y, y_calc, x_static, x_static_calc, {"activation": "relu"})
-net_linear = Net(y, y_calc, x_static, x_static_calc, {"activation": "linear"})
+#net_linear = Net(y, y_calc, x_static, x_static_calc, {"activation": "linear"})
 net_mish = Net(y, y_calc, x_static, x_static_calc, {"activation": "mish"})
 net_swish = Net(y, y_calc, x_static, x_static_calc, {"activation": "swish"})
 
@@ -439,7 +451,7 @@ optimizer_kernel = create_optim(net_kernel)
 optimizer_sigmoid = create_optim(net_sigmoid)
 optimizer_tanh = create_optim(net_tanh)
 optimizer_relu = create_optim(net_relu)
-optimizer_linear = create_optim(net_linear)
+#optimizer_linear = create_optim(net_linear)
 optimizer_mish = create_optim(net_mish)
 optimizer_swish = create_optim(net_swish)
 

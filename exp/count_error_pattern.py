@@ -317,6 +317,11 @@ class Net(nn.Module):
             denominator += tmp
             numerator += tmp * self.Y[j]
 
+        print("--------")
+        print(numerator[0])
+        print(denominator[0])
+        print("--------")
+
         g = numerator/denominator
         return g
 
@@ -331,6 +336,10 @@ class Net(nn.Module):
             denominator += tmp
             numerator += tmp * self.calc_Y[j]
 
+        print("--------")
+        print(numerator[0])
+        print(denominator[0])
+        print("--------")
         g = numerator/denominator
         return g
 
