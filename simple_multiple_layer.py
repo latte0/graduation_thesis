@@ -12,8 +12,8 @@ import math
 import numpy as np
 
 
-AVE = 3
-LR = 0.01
+AVE = 1
+LR = 0.0001
 
 STEP = 1000
 max_norm=0.25
@@ -246,6 +246,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
                 dif = y_predicted - y_true
                 accuracy = (int)(np.sum(dif * dif) / len(y_predicted))
             except:       
+                print("error")
                 error_count+=1     
                 neural_network = Net(y, y_calc, x_static, x_static_calc, {"activation": name})
                 net_optimizer = create_optim(neural_network)
