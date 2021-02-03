@@ -22,8 +22,8 @@
 ## 実行方法
 
 ```
-python kaf.py --use_clipping=false --show_kaf=false
+python kaf.py --use_clipping -c -s
 ```
 
-- use_clipping: クリッピングを用いるかどうか
-- show_kaf: K-AFの形状を表示するかどうか。（表示すると遅くなる。)
+- -c: クリッピングを用いるかどうか
+- -s: K-AFの形状を表示するかどうか。（表示すると遅くなる)

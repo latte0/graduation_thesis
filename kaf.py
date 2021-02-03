@@ -14,13 +14,6 @@ import random
 from argparse import ArgumentParser
 
 
-# クリッピングするかどうか
-use_clipping = False
-# clippingの上限値
-max_norm=0.25
-# K-AFの様子を見るかどうか
-show_kaf = False
-
 
 
 
@@ -55,7 +48,11 @@ init_method = 'kaiming_uniform_'
 reg_method = 'non'
 
 # 学習率
-learning_reate = 0.0001
+learning_reate = 0.00001
+
+# clippingの上限値
+max_norm=0.25
+
 
 
 # 各データセットに合わせたニューラルネットワークの設定を組む
@@ -117,22 +114,25 @@ if data_set_type=="breast_cancer":
 
 
 
-def get_option(show_kaf, use_clipping):
+def get_option():
     argparser = ArgumentParser()
-    argparser.add_argument('-s', '--show_kaf', type=bool,
-                           default=show_kaf,
-                           help='Specify boolean of show_kaf')
-    argparser.add_argument('-c', '--use_clipping', type=bool,
-                           default=use_clipping,
-                           help='Specify boolean of use_clipping')
+    argparser.add_argument('-s', '--show_kaf',
+                           default=False,
+                           help='Specify boolean of show_kaf',
+                           action='store_true')
+    argparser.add_argument('-c', '--use_clipping',
+                           default=False,
+                           help='Specify boolean of use_clipping',
+                           action='store_true')
     return argparser.parse_args()
 
 
 
-args = get_option(show_kaf, use_clipping)
+args = get_option()
+# K-AFを可視化するかどうか
 show_kaf = args.show_kaf
+# 勾配の上限値をクリッピングするかどうか
 use_clipping = args.use_clipping
-
 
 
 
@@ -179,7 +179,7 @@ def init_weights(m):
 
         #m.bias.data.fill_(0.01)
 
-
+# カーネルに使うガウス関数
 def gauss(x, a=1, mu=0, sigma=1):
     return a * torch.exp(-(x - mu)**2 / (2*sigma**2))
 
@@ -191,28 +191,12 @@ def create_list_data(p):
     return l
 
 
-def create_list_data_index(p, index):
-    l = []
-    for i in range(0, DATA_OUTPUT_LENGTH):
-        if(i == index):
-            l.append(p)
-        else:
-            l.append(0)
-    return l
-
-
-def predict(X):
-    X = Variable(torch.from_numpy(np.array(X)).float())
-    outputs = net(X)
-    return np.argmax(outputs.data.numpy())
-
-
-
-
+# 活性化関数(swish)
 def swish(x):
     return x * torch.sigmoid(x)
 
 
+# 活性化関数(mish)
 def mish(x):
     return x * torch.tanh(F.softplus(x))
 
@@ -240,15 +224,23 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             loss = criterion(output, y)
             loss.backward()
             
+            # 勾配をクリッピングする
             if use_clipping:
                 nn.utils.clip_grad_norm_(neural_network.parameters(), max_norm)
             
+            net_optimizer.step()
+
+            # ValidationLossをとる
             test_output = neural_network(torch.from_numpy(X_test).float())
             test_loss = criterion(test_output, torch.from_numpy(y_test).float())
             loss_list.append(test_loss.item())
-            
-            net_optimizer.step()
 
+
+            # K-AFは重いので進捗が見えるように
+            if(name == "kernel"): print(j)
+
+
+            # -s オプションをつけていたら見える。
             if(j % 1 == 0 and name == "kernel" and show_kaf):
                 test_input_y_torch = neural_network.kernel_output(test_input_x_torch)
                 test_input_y = test_input_y_torch.to('cpu').detach().numpy().copy()
@@ -263,10 +255,16 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
             
         outputs = neural_network(Variable(torch.from_numpy(X_test).float()))
 
+
+        # Accuracyの取得
+        # labelは一番大きいところを1にしてpredictとベクトルが完全一致してるかで評価
         if DATA_TYPE=="label":
             _, predicted = torch.max(outputs.data, 1)
+        # 最小二乗誤差(MSEでやる)
         if DATA_TYPE=="reg":
             predicted = outputs.data
+
+            
         y_predicted = predicted.numpy()
 
         if DATA_TYPE=="label":
@@ -286,7 +284,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
                 net_optimizer = create_optim(neural_network)
 
                 loss_list = []
-                continue #your handling code
+                continue
                     
 
 
@@ -316,7 +314,7 @@ def train(neural_network, net_optimizer, name, X_train, X_test, y_train, y_test,
 
 
     print('average(Accuracyの平均): {0}%'.format(ave))
-    print('EXP_NUM(実験回数): {0}, error_count(発散の回数):{1}%'.format(EXP_NUM, error_count))
+    print('EXP_NUM(実験回数): {0}回, error_count(発散の回数):{1}回'.format(EXP_NUM, error_count))
     print("-----------finish--------------")
     
     return ave, acc_list, loss_list
